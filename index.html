@@ -1,0 +1,1535 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Aluminium Pro Max - Architect Edition</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+    
+    @media print { 
+      @page { margin: 8mm; }
+      .no-print { display: none !important; } 
+      .print-only { display: block !important; } 
+      body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+      .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+      svg { max-width: 100% !important; max-height: 100% !important; display: block; }
+    }
+    .print-only { display: none; }
+    
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .toggle-checkbox:checked { right: 0; border-color: #0d9488; }
+    .toggle-checkbox:checked + .toggle-label { background-color: #0d9488; }
+    
+    /* PRO CAD BLUEPRINT GRID */
+    .bg-blueprint {
+      background-color: #1e293b;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+      background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+      background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+    }
+
+    /* TOAST ANIMATION */
+    @keyframes slideUpFade {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .toast-anim { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    class ErrorBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+      static getDerivedStateFromError(error) { return { hasError: true, error }; }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="p-6 bg-red-50 text-red-700 min-h-screen">
+              <h2 className="text-2xl font-bold mb-4">Oops! App Crashed.</h2>
+              <pre className="bg-white p-4 rounded border border-red-200 text-xs overflow-auto">{this.state.error.toString()}</pre>
+            </div>
+          );
+        }
+        return this.props.children; 
+      }
+    }
+
+    const IconPlus = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+    const IconTrash = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>;
+    const IconChevronDown = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
+    const IconCalc = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line></svg>;
+    const IconDG = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>;
+    const IconEdit = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>;
+    const IconPDF = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
+    const IconUser = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
+    const IconSave = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>;
+    const IconRefresh = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.28l5.67-5.67"/></svg>;
+    const IconShare = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>;
+    const IconCopy = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
+
+    // Toast Notification Component
+    const Toast = ({ message, type = 'success', onClose }) => {
+      useEffect(() => { const timer = setTimeout(onClose, 3000); return () => clearTimeout(timer); }, [message]);
+      if (!message) return null;
+      return (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] toast-anim w-11/12 max-w-sm">
+          <div className={`p-4 rounded-2xl shadow-2xl flex items-center gap-3 text-white font-bold text-sm ${type==='success'?'bg-emerald-600':'bg-rose-600'}`}>
+            <div className="bg-white/20 p-1.5 rounded-full">{type==='success'?<IconSave/>:<IconTrash/>}</div>
+            {message}
+          </div>
+        </div>
+      );
+    };
+
+    const InputField = ({ label, type = "text", value, onChange, placeholder }) => (
+      <div className="mb-4">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">{label}</label>
+        <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all shadow-sm" />
+      </div>
+    );
+
+    const catalogColors = {
+      "Dull/Silver": ["Dull Silver", "Silver Smooth"],
+      "Champagne/PC": [
+        "GR 9001 HG", "GR 9003 HG", "GR 9016 HG (White)", "GR 9016 DM", "GR 9003 DM",
+        "GR 9017 HG", "GR 9011 HG", "GR 7102 HG", "GR 9010 HG", "GR 9104 HG",
+        "GR 9103 HG", "GR 1100 HG", "GR 1015 HG", "GR 1002 HG", "GR 4100 SM",
+        "GR 7006 SM", "GR 7001 HG", "GR 7032 HG", "GR 7012 HG", "GR 7021 HG",
+        "GR 7024 HG", "GR 7038 HG", "GR 7041 HG", "GR 7047 SM", "GR 7024 EDM",
+        "GR 8705 SM", "GR 8007 HG", "GR 8017 HG", "GR 8019 HG", "GR 5102 HG",
+        "GR 5012 HG", "GR 5103 HG", "GR 5104 HG", "GR 5002 HG", "GR 5005 HG",
+        "GR 5011 HG", "GR 5019 EDM", "GR 6101 HG", "GR 6102 HG", "GR 6001 HG",
+        "GR 6025 HG", "GR 6029 HG", "GR 6005 HG", "GR 4003 HG", "GR 1006 HG",
+        "GR 2008 HG", "GR 2004 HG", "GR 3002 HG", "GR 3004 HG", "GR 3027 HG",
+        "GR 9005 HG", "GR 9005 SM (S)", "GR MX 9005 SM", "GR PP 9005 SM", "GR 9005 DM",
+        "GR 9005 EDM", "GR 9101 ST", "GR 7047 ST", "GR 1017 ST", "GR 8001 ST"
+      ],
+      "Sahara/Brown": [
+        "GR 8003 ST", "GR 8011 ST", "GR 8012 ST", "GR 7024 ST", "GR 9005 ST",
+        "GR Sahara Champagne", "GR Aztec Grey", "GR Atlantis Grey", "GR Diamond Blue", "GR Silver Smooth",
+        "GR Golden Smooth", "GR Silver Antique", "GR Golden Antique", "GR 9003 T", "GR 1100 CT",
+        "GR 7035 CT", "GR 7035 KT", "GR 7038 CT", "GR 7032 (120T)", "GR 7032 PCT",
+        "GR 7000 CT", "GR 7102 CT", "GR 7104 CT", "GR 7024 CT", "GR 2008 CT",
+        "GR 2004 CT", "GR 5012 CT", "GR 3100 T", "GR 9005 CT", "GR 9005 MCT"
+      ],
+      "Multi/Black": [
+        "Multi Golden", "Multi Blue", "Multi Gray", "Multi Black", "Multi Green"
+      ],
+      "Wood Coat": [
+        "Wood 915", "Wood 116", "Wood 115", "Wood 107", "Wood 816", "Wood 817",
+        "Wood 806", "Wood 905", "Wood Greige", "Wood 917", "Wood 815", "Wood 133",
+        "Wood 935", "Wood 916", "Wood 807"
+      ]
+    };
+
+    const glassColorOptions = [
+      { name: 'Clear', idSuffix: 'clear', bg: 'bg-slate-200' },
+      { name: 'Dark Blue', idSuffix: 'blue', bg: 'bg-blue-800' },
+      { name: 'Sky Blue', idSuffix: 'lightblue', bg: 'bg-blue-400' },
+      { name: 'Bronze/Brown', idSuffix: 'brown', bg: 'bg-amber-800' },
+      { name: 'Ref Green', idSuffix: 'green', bg: 'bg-emerald-700' },
+      { name: 'Blackish Grey', idSuffix: 'grey', bg: 'bg-slate-800' },
+      { name: 'Ribbed Clear', idSuffix: 'pattern', bg: 'bg-slate-200' },
+      { name: 'Ribbed Blue', idSuffix: 'pattern-blue', bg: 'bg-blue-600' },
+      { name: 'Ribbed Green', idSuffix: 'pattern-green', bg: 'bg-emerald-600' },
+      { name: 'Ribbed Black', idSuffix: 'pattern-black', bg: 'bg-slate-900' }
+    ];
+
+    const sheetColorOptions = [
+      { name: 'DLX-1001 (Silver)', hex: '#cbd5e1' }, { name: 'DLX-1002 (Light Grey)', hex: '#e2e8f0' },
+      { name: 'DLX-1003 (Metallic)', hex: '#d6d3d1' }, { name: 'DLX-1004 (Gold)', hex: '#fde047' },
+      { name: 'DLX-1005 (Copper)', hex: '#d97706' }, { name: 'DLX-1006 (Dark Grey)', hex: '#475569' },
+      { name: 'DLX-1007 (White)', hex: '#ffffff' }, { name: 'DLX-1008 (Black)', hex: '#0f172a' },
+      { name: 'DLX-1009 (Red)', hex: '#ef4444' }, { name: 'DLX-1010 (Yellow)', hex: '#eab308' },
+      { name: 'DLX-1011 (Dark Blue)', hex: '#1d4ed8' }, { name: 'DLX-1012 (Green)', hex: '#059669' },
+      { name: 'DLX-1013 (Orange)', hex: '#f97316' }, { name: 'DLX-1014 (Blue)', hex: '#3b82f6' },
+      { name: 'DLX-1015 (Dark Red)', hex: '#b91c1c' }, { name: 'DLX-1016 (Ice White)', hex: '#f8fafc' },
+      { name: 'DLX-1017 (Off White)', hex: '#fef08a' }, { name: 'DLX-1018 (Cream)', hex: '#fef3c7' },
+      { name: 'DLX-1019 (Beige)', hex: '#fde68a' }, { name: 'DLX-1020 (Pink)', hex: '#ec4899' },
+      { name: 'DLX-1021 (Purple)', hex: '#8b5cf6' }, { name: 'DLX-1022 (Grey)', hex: '#94a3b8' },
+      { name: 'DLX-1023 (Brushed Silver)', hex: '#9ca3af' }, { name: 'DLX-1024 (Brushed Gold)', hex: '#ca8a04' }
+    ];
+
+    // --- PROPORTIONAL CAD VISUALIZER ---
+    const Visualizer = ({ id, w, h, type, panelQty, hasArch, archType, archHeight, colorCategory, specificColor, panelMaterial, glassColor, sheetColor, isMercury, dividerWQty, dividerHQty, dividerType, mini = false }) => {
+      const widthFt = parseFloat(w) || 4;
+      const heightFt = parseFloat(h) || 4;
+      
+      let aHFt = 0;
+      if (hasArch && type !== 'DG') {
+          if (archType === 'Full Round') aHFt = widthFt / 2;
+          else {
+              aHFt = parseFloat(archHeight) || 0;
+              if (aHFt > widthFt/2) aHFt = widthFt/2;
+          }
+      }
+      const totalHFt = heightFt + aHFt;
+      
+      const uid = useMemo(() => id || Math.random().toString(36).substring(2, 9), [id]);
+
+      const maxDim = 12; 
+      const widthPercent = Math.min((widthFt / maxDim) * 100, 100);
+      const heightPercent = Math.min((totalHFt / maxDim) * 100, 100);
+      
+      const finalWPercent = mini ? 100 : Math.max(widthPercent, 25);
+      const finalHPercent = mini ? 100 : Math.max(heightPercent, 25);
+
+      const previewRatio = widthFt / totalHFt;
+      let svgW = 400; let svgH = 400 / previewRatio;
+      
+      const archH_px = aHFt > 0 ? svgH * (aHFt / totalHFt) : 0;
+      const mainH_px = svgH - archH_px;
+      
+      const frameThickness = 18; const sashThickness = 14;
+      const isDouble = panelQty === '2'; 
+
+      const getProfileUrl = () => {
+        const spec = specificColor || '';
+        if (colorCategory === 'Wood Coat') {
+          if (spec.match(/107|817|917|905|807|133|935|816/)) return `url(#wood-dark-${uid})`;
+          return `url(#wood-light-${uid})`; 
+        }
+        if (colorCategory === 'Multi/Black') {
+          if (spec.includes('Golden')) return `url(#multi-golden-${uid})`;
+          if (spec.includes('Blue')) return `url(#pc-blue-${uid})`;
+          if (spec.includes('Gray')) return `url(#pc-grey-${uid})`;
+          if (spec.includes('Green')) return `url(#pc-green-${uid})`;
+          return `url(#pc-black-${uid})`;
+        }
+        if (colorCategory === 'Champagne/PC' || colorCategory === 'Sahara/Brown') {
+          if (spec.match(/9001|9003|9016|9010|9104|9101|1017|White|Champagne/i)) return `url(#pc-white-${uid})`;
+          if (spec.match(/9005|7021|8705|Black/i)) return `url(#pc-black-${uid})`;
+          if (spec.match(/7\d{3}|Grey|Silver/i)) return `url(#pc-grey-${uid})`;
+          if (spec.match(/8\d{3}|4100|Brown/i)) return `url(#pc-brown-${uid})`;
+          if (spec.match(/5\d{3}|Blue|Atlantis/i)) return `url(#pc-blue-${uid})`;
+          if (spec.match(/6\d{3}|Green/i)) return `url(#pc-green-${uid})`;
+          if (spec.match(/3\d{3}|2004|2008|Red|Orange/i)) return `url(#pc-red-${uid})`;
+          if (spec.match(/1006|1100|1015|1002|Golden|Yellow/i)) return `url(#pc-yellow-${uid})`;
+          return `url(#champagne-${uid})`; 
+        }
+        return `url(#dull-silver-${uid})`;
+      };
+
+      const getPanelFill = () => {
+        if (panelMaterial === 'Sheet') return sheetColor;
+        const selected = glassColorOptions.find(g => g.name === glassColor);
+        return selected ? `url(#glass-${selected.idSuffix}-${uid})` : `url(#glass-clear-${uid})`;
+      };
+
+      const DrawDividers = ({ innerW, innerH }) => {
+        const dW = parseInt(dividerWQty) || 0;
+        const dH = parseInt(dividerHQty) || 0;
+        const lines = [];
+        let strokeW = "0.5";
+        let thick = 8;
+        if(dividerType === 'D-52') thick = 12;
+        if(dividerType === 'D-59' || dividerType === 'D-40' || dividerType === 'D-59A') thick = 10;
+        for(let i=1; i<=dW; i++) {
+          let y = (innerH / (dW + 1)) * i;
+          lines.push(<rect key={`h${i}`} x="0" y={y-(thick/2)} width={innerW} height={thick} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth={strokeW} filter={`url(#drop-shadow-${uid})`} />);
+        }
+        for(let j=1; j<=dH; j++) {
+          let x = (innerW / (dH + 1)) * j;
+          lines.push(<rect key={`v${j}`} x={x-(thick/2)} y="0" width={thick} height={innerH} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth={strokeW} filter={`url(#drop-shadow-${uid})`} />);
+        }
+        return <g>{lines}</g>;
+      };
+
+      const wrapperClasses = mini 
+          ? "w-full h-full flex justify-center items-center bg-transparent overflow-hidden relative" 
+          : "w-full h-72 bg-blueprint rounded-t-3xl border-b-4 border-slate-800 shadow-inner overflow-hidden relative flex justify-center items-center p-4";
+
+      const viewBoxStr = mini ? `-10 -10 ${svgW + 20} ${svgH + 20}` : `-60 -50 ${svgW + 120} ${svgH + 110}`;
+
+      return (
+        <div className={wrapperClasses}>
+          <div style={{ width: `${finalWPercent}%`, height: `${finalHPercent}%`, maxWidth: '100%', maxHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <svg width="100%" height="100%" viewBox={viewBoxStr} preserveAspectRatio="xMidYMid meet" style={{ filter: mini ? 'drop-shadow(0px 2px 4px rgba(0,0,0,0.15))' : 'drop-shadow(0px 15px 25px rgba(0,0,0,0.5))'}}>
+              <defs>
+                <linearGradient id={`glass-clear-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#94a3b8" /><stop offset="45%" stopColor="#e2e8f0" /><stop offset="50%" stopColor="#ffffff" /><stop offset="55%" stopColor="#cbd5e1" /><stop offset="100%" stopColor="#64748b" /></linearGradient>
+                <linearGradient id={`glass-blue-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#0f172a" /><stop offset="35%" stopColor="#1e3a8a" /><stop offset="48%" stopColor="#2563eb" /><stop offset="50%" stopColor="#bfdbfe" /><stop offset="52%" stopColor="#1d4ed8" /><stop offset="100%" stopColor="#020617" /></linearGradient>
+                <linearGradient id={`glass-brown-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#290e01" /><stop offset="35%" stopColor="#451a03" /><stop offset="48%" stopColor="#92400e" /><stop offset="50%" stopColor="#fef3c7" /><stop offset="52%" stopColor="#b45309" /><stop offset="100%" stopColor="#290e01" /></linearGradient>
+                <linearGradient id={`glass-grey-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#020617" /><stop offset="35%" stopColor="#1e293b" /><stop offset="48%" stopColor="#475569" /><stop offset="50%" stopColor="#e2e8f0" /><stop offset="52%" stopColor="#334155" /><stop offset="100%" stopColor="#020617" /></linearGradient>
+                <linearGradient id={`glass-green-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#064e3b" /><stop offset="35%" stopColor="#065f46" /><stop offset="48%" stopColor="#10b981" /><stop offset="50%" stopColor="#d1fae5" /><stop offset="52%" stopColor="#059669" /><stop offset="100%" stopColor="#022c22" /></linearGradient>
+                <linearGradient id={`glass-lightblue-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#1e3a8a" /><stop offset="35%" stopColor="#3b82f6" /><stop offset="50%" stopColor="#e0f2fe" /><stop offset="100%" stopColor="#0f172a" /></linearGradient>
+                
+                <pattern id={`glass-pattern-${uid}`} width="60" height="60" patternUnits="userSpaceOnUse"><rect width="60" height="60" fill="#e2e8f0"/><path d="M0,30 Q15,0 30,30 T60,30" fill="none" stroke="#94a3b8" strokeWidth="2" opacity="0.8"/><path d="M30,0 Q60,15 30,60 T0,60" fill="none" stroke="#94a3b8" strokeWidth="2" opacity="0.8"/><circle cx="30" cy="30" r="5" fill="#64748b" opacity="0.5" /></pattern>
+                
+                <linearGradient id={`mercury-glare-${uid}`} x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="30%" stopColor="rgba(255,255,255,0)" /><stop offset="45%" stopColor="rgba(255,255,255,0.7)" /><stop offset="50%" stopColor="rgba(255,255,255,0.9)" /><stop offset="55%" stopColor="rgba(255,255,255,0.4)" /><stop offset="70%" stopColor="rgba(255,255,255,0)" /></linearGradient>
+
+                <linearGradient id={`dull-silver-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#cbd5e1" /><stop offset="50%" stopColor="#f1f5f9" /><stop offset="100%" stopColor="#94a3b8" /></linearGradient>
+                <linearGradient id={`champagne-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d4b483" /><stop offset="50%" stopColor="#fef3c7" /><stop offset="100%" stopColor="#b48b52" /></linearGradient>
+                <linearGradient id={`pc-white-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#e2e8f0" /><stop offset="50%" stopColor="#ffffff" /><stop offset="100%" stopColor="#cbd5e1" /></linearGradient>
+                <linearGradient id={`pc-black-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#0f172a" /><stop offset="50%" stopColor="#334155" /><stop offset="100%" stopColor="#020617" /></linearGradient>
+                <linearGradient id={`pc-brown-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#451a03" /><stop offset="50%" stopColor="#78350f" /><stop offset="100%" stopColor="#290e01" /></linearGradient>
+                <linearGradient id={`pc-grey-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#334155" /><stop offset="50%" stopColor="#64748b" /><stop offset="100%" stopColor="#1e293b" /></linearGradient>
+                
+                <linearGradient id={`pc-blue-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#1e3a8a" /><stop offset="50%" stopColor="#3b82f6" /><stop offset="100%" stopColor="#172554" /></linearGradient>
+                <linearGradient id={`pc-green-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#065f46" /><stop offset="50%" stopColor="#10b981" /><stop offset="100%" stopColor="#022c22" /></linearGradient>
+                <linearGradient id={`pc-red-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#7f1d1d" /><stop offset="50%" stopColor="#ef4444" /><stop offset="100%" stopColor="#450a0a" /></linearGradient>
+                <linearGradient id={`pc-yellow-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a16207" /><stop offset="50%" stopColor="#fde047" /><stop offset="100%" stopColor="#713f12" /></linearGradient>
+
+                <linearGradient id={`wood-light-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#92400e" /><stop offset="30%" stopColor="#d97706" /><stop offset="70%" stopColor="#b45309" /><stop offset="100%" stopColor="#78350f" /></linearGradient>
+                <linearGradient id={`wood-dark-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#3b1a03" /><stop offset="30%" stopColor="#78350f" /><stop offset="70%" stopColor="#451a03" /><stop offset="100%" stopColor="#290e01" /></linearGradient>
+                
+                <linearGradient id={`multi-golden-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ca8a04" /><stop offset="50%" stopColor="#fef08a" /><stop offset="100%" stopColor="#854d0e" /></linearGradient>
+
+                <filter id={`drop-shadow-${uid}`} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="2" dy="3" stdDeviation="3" floodColor="#000" floodOpacity="0.4"/></filter>
+                
+                {/* Arch Clip Path */}
+                {archH_px > 0 && (
+                  <clipPath id={`arch-clip-${uid}`}>
+                    <path d={`M 0,${archH_px} A ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} 0 0 1 ${svgW},${archH_px} Z`} />
+                  </clipPath>
+                )}
+              </defs>
+
+              <rect x="0" y="0" width={svgW} height={svgH} fill={mini ? "rgba(0,0,0,0.02)" : "#0f172a"} />
+
+              {!mini && (
+                <g className="dimensions text-teal-300" style={{userSelect: 'none', filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.8))'}}>
+                  <path d={`M 0 -25 L ${svgW} -25 M 0 -35 L 0 -15 M ${svgW} -35 L ${svgW} -15`} fill="none" stroke="currentColor" strokeWidth="2" />
+                  <text x={svgW/2} y="-35" fill="currentColor" fontSize="24" fontWeight="900" textAnchor="middle">{w || 4}' (W)</text>
+                  
+                  <path d={`M -25 0 L -25 ${svgH} M -35 0 L -15 0 M -35 ${svgH} L -15 ${svgH}`} fill="none" stroke="currentColor" strokeWidth="2" />
+                  <text x="-35" y={svgH/2} fill="currentColor" fontSize="24" fontWeight="900" textAnchor="middle" transform={`rotate(-90, -35, ${svgH/2})`}>{totalHFt.toFixed(1)}' (Total H)</text>
+                </g>
+              )}
+
+              {/* ARCH SECTION DRAWING */}
+              {archH_px > 0 && (
+                <g>
+                   {/* Arch Glass and Frame */}
+                   <path d={`M 0,${archH_px} A ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} 0 0 1 ${svgW},${archH_px} Z`} fill={getPanelFill()} stroke={getProfileUrl()} strokeWidth={frameThickness * 2} clipPath={`url(#arch-clip-${uid})`} />
+                   {isMercury && panelMaterial==='Glass' && <path d={`M 0,${archH_px} A ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} 0 0 1 ${svgW},${archH_px} Z`} fill={`url(#mercury-glare-${uid})`} clipPath={`url(#arch-clip-${uid})`} />}
+                   
+                   {/* Arch Base Divider */}
+                   <rect x="0" y={archH_px - frameThickness} width={svgW} height={frameThickness * 2} fill={getProfileUrl()} />
+                   <rect x="0" y={archH_px - frameThickness} width={svgW} height={frameThickness * 2} fill="none" stroke="#020617" strokeWidth="2" />
+                   
+                   {/* Divider line between arch and main window */}
+                   <line x1="0" y1={archH_px} x2={svgW} y2={archH_px} stroke="#020617" strokeWidth="2" />
+                   
+                   {/* Outer Border for Arch */}
+                   <path d={`M 0,${archH_px} A ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} ${(archH_px/2) + (svgW*svgW)/(8*archH_px)} 0 0 1 ${svgW},${archH_px}`} fill="none" stroke="#020617" strokeWidth="2" />
+                </g>
+              )}
+
+              {/* MAIN STRUCTURE (Translated down if Arch exists) */}
+              <g transform={`translate(0, ${archH_px})`}>
+                {type === 'Sliding' && (
+                  <g>
+                    <g transform={`translate(${frameThickness}, ${frameThickness})`}>
+                      <rect x={sashThickness} y={sashThickness} width={svgW/2 - frameThickness + 5 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                      {isMercury && panelMaterial==='Glass' && <rect x={sashThickness} y={sashThickness} width={svgW/2 - frameThickness + 5 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                      <g transform={`translate(${sashThickness}, ${sashThickness})`}><DrawDividers innerW={svgW/2 - frameThickness + 5 - sashThickness*2} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                      <path d={`M0,0 L${svgW/2 - frameThickness + 5},0 L${svgW/2 - frameThickness + 5},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness},${sashThickness} L${sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW/2 - frameThickness + 5 - sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW/2 - frameThickness + 5 - sashThickness},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                    </g>
+                    <g transform={`translate(${svgW/2 - 5}, ${frameThickness})`}>
+                      <rect x="-3" y="0" width="3" height={mainH_px - frameThickness*2} fill="rgba(0,0,0,0.8)" />
+                      <rect x={sashThickness} y={sashThickness} width={svgW/2 - frameThickness + 5 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                      {isMercury && panelMaterial==='Glass' && <rect x={sashThickness} y={sashThickness} width={svgW/2 - frameThickness + 5 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                      <g transform={`translate(${sashThickness}, ${sashThickness})`}><DrawDividers innerW={svgW/2 - frameThickness + 5 - sashThickness*2} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                      <path d={`M0,0 L${svgW/2 - frameThickness + 5},0 L${svgW/2 - frameThickness + 5},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness},${sashThickness} L${sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW/2 - frameThickness + 5 - sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW/2 - frameThickness + 5 - sashThickness},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                    </g>
+                    {/* Only draw top frame border if there's no arch, else it blends */}
+                    <path d={`M0,0 L${svgW},0 L${svgW},${mainH_px} L0,${mainH_px} Z M${frameThickness},${frameThickness} L${frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${frameThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" />
+                    <rect x="0" y="0" width={svgW} height={mainH_px} fill="none" stroke="#020617" strokeWidth="2" />
+                  </g>
+                )}
+
+                {type === 'Fixed' && (
+                  <g>
+                    <rect x={frameThickness} y={frameThickness} width={svgW - frameThickness*2} height={mainH_px - frameThickness*2} fill={getPanelFill()} />
+                    {isMercury && panelMaterial==='Glass' && <rect x={frameThickness} y={frameThickness} width={svgW - frameThickness*2} height={mainH_px - frameThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                    <g transform={`translate(${frameThickness}, ${frameThickness})`}><DrawDividers innerW={svgW - frameThickness*2} innerH={mainH_px - frameThickness*2} /></g>
+                    <path d={`M0,0 L${svgW},0 L${svgW},${mainH_px} L0,${mainH_px} Z M${frameThickness},${frameThickness} L${frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${frameThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" />
+                    <rect x="0" y="0" width={svgW} height={mainH_px} fill="none" stroke="#020617" strokeWidth="2" />
+                  </g>
+                )}
+
+                {type === 'Openable' && (
+                  <g>
+                    {isDouble ? (
+                      <g transform={`translate(${frameThickness}, ${frameThickness})`}>
+                        <g>
+                          <rect x={sashThickness} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                          {isMercury && panelMaterial==='Glass' && <rect x={sashThickness} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                          <g transform={`translate(${sashThickness}, ${sashThickness})`}><DrawDividers innerW={(svgW - frameThickness*2)/2 - sashThickness*1.5} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                          <path d={`M0,0 L${(svgW - frameThickness*2)/2},0 L${(svgW - frameThickness*2)/2},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness},${sashThickness} L${sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness*0.5},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness*0.5},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                          <rect x={(svgW - frameThickness*2)/2 - 20} y={(mainH_px - frameThickness*2)/2 - 20} width={8} height={40} fill="#1e293b" rx="3" filter={`url(#drop-shadow-${uid})`} />
+                        </g>
+                        <g transform={`translate(${(svgW - frameThickness*2)/2}, 0)`}>
+                          <rect x={sashThickness*0.5} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                          {isMercury && panelMaterial==='Glass' && <rect x={sashThickness*0.5} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                          <g transform={`translate(${sashThickness*0.5}, ${sashThickness})`}><DrawDividers innerW={(svgW - frameThickness*2)/2 - sashThickness*1.5} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                          <path d={`M0,0 L${(svgW - frameThickness*2)/2},0 L${(svgW - frameThickness*2)/2},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness*0.5},${sashThickness} L${sashThickness*0.5},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                          <rect x={12} y={(mainH_px - frameThickness*2)/2 - 20} width={8} height={40} fill="#1e293b" rx="3" filter={`url(#drop-shadow-${uid})`} />
+                        </g>
+                      </g>
+                    ) : (
+                      <g transform={`translate(${frameThickness}, ${frameThickness})`}>
+                        <rect x={sashThickness} y={sashThickness} width={svgW - frameThickness*2 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                        {isMercury && panelMaterial==='Glass' && <rect x={sashThickness} y={sashThickness} width={svgW - frameThickness*2 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                        <g transform={`translate(${sashThickness}, ${sashThickness})`}><DrawDividers innerW={svgW - frameThickness*2 - sashThickness*2} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                        <path d={`M0,0 L${svgW - frameThickness*2},0 L${svgW - frameThickness*2},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness},${sashThickness} L${sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW - frameThickness*2 - sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW - frameThickness*2 - sashThickness},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                        <rect x={svgW - frameThickness*2 - 25} y={(mainH_px - frameThickness*2)/2 - 20} width={8} height={40} fill="#1e293b" rx="3" filter={`url(#drop-shadow-${uid})`} />
+                      </g>
+                    )}
+                    <path d={`M0,0 L${svgW},0 L${svgW},${mainH_px} L0,${mainH_px} Z M${frameThickness},${frameThickness} L${frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${frameThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" />
+                    <rect x="0" y="0" width={svgW} height={mainH_px} fill="none" stroke="#020617" strokeWidth="2" />
+                  </g>
+                )}
+
+                {type === 'Door' && (
+                  <g>
+                    {isDouble ? (
+                      <g transform={`translate(${frameThickness}, ${frameThickness})`}>
+                        <g>
+                          <rect x={sashThickness} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                          {isMercury && panelMaterial==='Glass' && <rect x={sashThickness} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                          <g transform={`translate(${sashThickness}, ${sashThickness})`}><DrawDividers innerW={(svgW - frameThickness*2)/2 - sashThickness*1.5} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                          <rect x={sashThickness} y={(mainH_px - frameThickness*2)/2 - 15} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={30} fill={getProfileUrl()} filter={`url(#drop-shadow-${uid})`} />
+                          <rect x={sashThickness} y={mainH_px - frameThickness*2 - 80} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={80 - sashThickness} fill={getProfileUrl()} />
+                          <path d={`M0,0 L${(svgW - frameThickness*2)/2},0 L${(svgW - frameThickness*2)/2},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness},${sashThickness} L${sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness*0.5},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness*0.5},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                          <rect x={(svgW - frameThickness*2)/2 - 25} y={(mainH_px - frameThickness*2)/2 - 30} width={10} height={60} fill="#1e293b" rx="3" filter={`url(#drop-shadow-${uid})`} />
+                        </g>
+                        <g transform={`translate(${(svgW - frameThickness*2)/2}, 0)`}>
+                          <rect x={sashThickness*0.5} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                          {isMercury && panelMaterial==='Glass' && <rect x={sashThickness*0.5} y={sashThickness} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                          <g transform={`translate(${sashThickness*0.5}, ${sashThickness})`}><DrawDividers innerW={(svgW - frameThickness*2)/2 - sashThickness*1.5} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                          <rect x={sashThickness*0.5} y={(mainH_px - frameThickness*2)/2 - 15} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={30} fill={getProfileUrl()} filter={`url(#drop-shadow-${uid})`} />
+                          <rect x={sashThickness*0.5} y={mainH_px - frameThickness*2 - 80} width={(svgW - frameThickness*2)/2 - sashThickness*1.5} height={80 - sashThickness} fill={getProfileUrl()} />
+                          <path d={`M0,0 L${(svgW - frameThickness*2)/2},0 L${(svgW - frameThickness*2)/2},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness*0.5},${sashThickness} L${sashThickness*0.5},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${(svgW - frameThickness*2)/2 - sashThickness},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                          <rect x={15} y={(mainH_px - frameThickness*2)/2 - 30} width={10} height={60} fill="#1e293b" rx="3" filter={`url(#drop-shadow-${uid})`} />
+                        </g>
+                      </g>
+                    ) : (
+                      <g transform={`translate(${frameThickness}, ${frameThickness})`}>
+                        <rect x={sashThickness} y={sashThickness} width={svgW - frameThickness*2 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={getPanelFill()} />
+                        {isMercury && panelMaterial==='Glass' && <rect x={sashThickness} y={sashThickness} width={svgW - frameThickness*2 - sashThickness*2} height={mainH_px - frameThickness*2 - sashThickness*2} fill={`url(#mercury-glare-${uid})`} />}
+                        <g transform={`translate(${sashThickness}, ${sashThickness})`}><DrawDividers innerW={svgW - frameThickness*2 - sashThickness*2} innerH={mainH_px - frameThickness*2 - sashThickness*2} /></g>
+                        <rect x={sashThickness} y={(mainH_px - frameThickness*2)/2 - 15} width={svgW - frameThickness*2 - sashThickness*2} height={30} fill={getProfileUrl()} filter={`url(#drop-shadow-${uid})`} />
+                        <rect x={sashThickness} y={mainH_px - frameThickness*2 - 80} width={svgW - frameThickness*2 - sashThickness*2} height={80 - sashThickness} fill={getProfileUrl()} />
+                        <line x1={sashThickness+10} y1={mainH_px - frameThickness*2 - 60} x2={svgW - frameThickness - sashThickness - 10} y2={mainH_px - frameThickness*2 - 60} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                        <line x1={sashThickness+10} y1={mainH_px - frameThickness*2 - 40} x2={svgW - frameThickness - sashThickness - 10} y2={mainH_px - frameThickness*2 - 40} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                        <path d={`M0,0 L${svgW - frameThickness*2},0 L${svgW - frameThickness*2},${mainH_px - frameThickness*2} L0,${mainH_px - frameThickness*2} Z M${sashThickness},${sashThickness} L${sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW - frameThickness*2 - sashThickness},${mainH_px - frameThickness*2 - sashThickness} L${svgW - frameThickness*2 - sashThickness},${sashThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
+                        <rect x={25} y={(mainH_px - frameThickness*2)/2 - 30} width={10} height={60} fill="#1e293b" rx="3" filter={`url(#drop-shadow-${uid})`} />
+                      </g>
+                    )}
+                    <path d={`M0,0 L${svgW},0 L${svgW},${mainH_px} L0,${mainH_px} Z M${frameThickness},${frameThickness} L${frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${mainH_px-frameThickness} L${svgW-frameThickness},${frameThickness} Z`} fill={getProfileUrl()} stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" />
+                    <rect x="0" y="0" width={svgW} height={mainH_px} fill="none" stroke="#020617" strokeWidth="2" />
+                  </g>
+                )}
+              </g>
+            </svg>
+          </div>
+        </div>
+      );
+    };
+
+    const defaultRates = {
+        "DC-30 F 1.2mm": { "Dull/Silver": 752, "Champagne/PC": 754, "Sahara/Brown": 807, "Multi/Black": 844, "Wood Coat": 943 },
+        "DC-26 F 1.2mm": { "Dull/Silver": 878, "Champagne/PC": 880, "Sahara/Brown": 942, "Multi/Black": 986, "Wood Coat": 1100 },
+        "DC-30 F 1.6mm": { "Dull/Silver": 909, "Champagne/PC": 911, "Sahara/Brown": 975, "Multi/Black": 1020, "Wood Coat": 1139 },
+        "DC-26 F 1.6mm": { "Dull/Silver": 1047, "Champagne/PC": 1049, "Sahara/Brown": 1122, "Multi/Black": 1175, "Wood Coat": 1311 },
+        "DC-30 F 2.0mm": { "Dull/Silver": 1065, "Champagne/PC": 1067, "Sahara/Brown": 1142, "Multi/Black": 1195, "Wood Coat": 1334 },
+        "DC-26 F 2.0mm": { "Dull/Silver": 1242, "Champagne/PC": 1244, "Sahara/Brown": 1331, "Multi/Black": 1393, "Wood Coat": 1555 },
+        
+        "DC-30 1.2mm": { "Dull/Silver": 682, "Champagne/PC": 684, "Sahara/Brown": 732, "Multi/Black": 766, "Wood Coat": 855 },
+        "DC-26 1.2mm": { "Dull/Silver": 775, "Champagne/PC": 777, "Sahara/Brown": 831, "Multi/Black": 870, "Wood Coat": 971 },
+        "DC-30 1.6mm": { "Dull/Silver": 867, "Champagne/PC": 869, "Sahara/Brown": 930, "Multi/Black": 973, "Wood Coat": 1086 }, 
+        "DC-26 1.6mm": { "Dull/Silver": 1009, "Champagne/PC": 1011, "Sahara/Brown": 1082, "Multi/Black": 1132, "Wood Coat": 1264 }, 
+        "DC-30 2.0mm": { "Dull/Silver": 1031, "Champagne/PC": 1033, "Sahara/Brown": 1105, "Multi/Black": 1157, "Wood Coat": 1291 }, 
+        "DC-26 2.0mm": { "Dull/Silver": 1196, "Champagne/PC": 1198, "Sahara/Brown": 1282, "Multi/Black": 1342, "Wood Coat": 1498 }, 
+
+        "DC-30B 1.2mm": { "Dull/Silver": 614, "Champagne/PC": 616, "Sahara/Brown": 659, "Multi/Black": 690, "Wood Coat": 770 },
+        "DC-26B 1.2mm": { "Dull/Silver": 724, "Champagne/PC": 726, "Sahara/Brown": 777, "Multi/Black": 813, "Wood Coat": 908 },
+        "DC-30B 1.6mm": { "Dull/Silver": 757, "Champagne/PC": 759, "Sahara/Brown": 812, "Multi/Black": 850, "Wood Coat": 949 },
+        "DC-26B 1.6mm": { "Dull/Silver": 900, "Champagne/PC": 902, "Sahara/Brown": 965, "Multi/Black": 1010, "Wood Coat": 1128 },
+        "DC-30B 2.0mm": { "Dull/Silver": 900, "Champagne/PC": 902, "Sahara/Brown": 965, "Multi/Black": 1010, "Wood Coat": 1128 },
+        "DC-26B 2.0mm": { "Dull/Silver": 1065, "Champagne/PC": 1067, "Sahara/Brown": 1142, "Multi/Black": 1195, "Wood Coat": 1334 },
+
+        "DC-30C 1.2mm": { "Dull/Silver": 672, "Champagne/PC": 674, "Sahara/Brown": 721, "Multi/Black": 755, "Wood Coat": 843 },
+        "DC-26C 1.2mm": { "Dull/Silver": 774, "Champagne/PC": 776, "Sahara/Brown": 830, "Multi/Black": 869, "Wood Coat": 970 },
+        "DC-30C 1.6mm": { "Dull/Silver": 815, "Champagne/PC": 817, "Sahara/Brown": 874, "Multi/Black": 915, "Wood Coat": 1021 },
+        "DC-26C 1.6mm": { "Dull/Silver": 955, "Champagne/PC": 957, "Sahara/Brown": 1024, "Multi/Black": 1072, "Wood Coat": 1196 },
+        "DC-30C 2.0mm": { "Dull/Silver": 963, "Champagne/PC": 965, "Sahara/Brown": 1133, "Multi/Black": 1181, "Wood Coat": 1206 },
+        "DC-26C 2.0mm": { "Dull/Silver": 1139, "Champagne/PC": 1141, "Sahara/Brown": 1221, "Multi/Black": 1278, "Wood Coat": 1426 },
+
+        "M-30 F 1.2mm": { "Dull/Silver": 610, "Champagne/PC": 612, "Sahara/Brown": 655, "Multi/Black": 685, "Wood Coat": 765 },
+        "M-26 F 1.2mm": { "Dull/Silver": 678, "Champagne/PC": 680, "Sahara/Brown": 728, "Multi/Black": 762, "Wood Coat": 850 },
+        "M-30 F 1.6mm": { "Dull/Silver": 711, "Champagne/PC": 713, "Sahara/Brown": 763, "Multi/Black": 799, "Wood Coat": 891 },
+        "M-26 F 1.6mm": { "Dull/Silver": 809, "Champagne/PC": 811, "Sahara/Brown": 868, "Multi/Black": 908, "Wood Coat": 1014 },
+        "M-30 F 2.0mm": { "Dull/Silver": 834, "Champagne/PC": 836, "Sahara/Brown": 895, "Multi/Black": 936, "Wood Coat": 1045 },
+        "M-26 F 2.0mm": { "Dull/Silver": 953, "Champagne/PC": 955, "Sahara/Brown": 1022, "Multi/Black": 1070, "Wood Coat": 1194 },
+
+        "M-30 1.2mm": { "Dull/Silver": 520, "Champagne/PC": 522, "Sahara/Brown": 559, "Multi/Black": 585, "Wood Coat": 653 },
+        "M-26 1.2mm": { "Dull/Silver": 580, "Champagne/PC": 582, "Sahara/Brown": 623, "Multi/Black": 652, "Wood Coat": 728 },
+        "M-30 1.6mm": { "Dull/Silver": 608, "Champagne/PC": 610, "Sahara/Brown": 653, "Multi/Black": 683, "Wood Coat": 763 },
+        "M-26 1.6mm": { "Dull/Silver": 708, "Champagne/PC": 710, "Sahara/Brown": 760, "Multi/Black": 795, "Wood Coat": 888 },
+        "M-30 2.0mm": { "Dull/Silver": 714, "Champagne/PC": 716, "Sahara/Brown": 766, "Multi/Black": 802, "Wood Coat": 895 },
+        "M-26 2.0mm": { "Dull/Silver": 834, "Champagne/PC": 836, "Sahara/Brown": 895, "Multi/Black": 936, "Wood Coat": 1045 },
+
+        "M-23 1.2mm": { "Dull/Silver": 352, "Champagne/PC": 354, "Sahara/Brown": 379, "Multi/Black": 396, "Wood Coat": 443 },
+        "M-28 1.2mm": { "Dull/Silver": 429, "Champagne/PC": 431, "Sahara/Brown": 461, "Multi/Black": 483, "Wood Coat": 539 },
+        "M-24 1.2mm": { "Dull/Silver": 418, "Champagne/PC": 420, "Sahara/Brown": 449, "Multi/Black": 470, "Wood Coat": 525 },
+        "M-23 1.6mm": { "Dull/Silver": 443, "Champagne/PC": 445, "Sahara/Brown": 476, "Multi/Black": 498, "Wood Coat": 556 },
+        "M-28 1.6mm": { "Dull/Silver": 532, "Champagne/PC": 534, "Sahara/Brown": 571, "Multi/Black": 598, "Wood Coat": 668 },
+        "M-24 1.6mm": { "Dull/Silver": 495, "Champagne/PC": 497, "Sahara/Brown": 532, "Multi/Black": 557, "Wood Coat": 621 },
+        "M-23 2.0mm": { "Dull/Silver": 540, "Champagne/PC": 542, "Sahara/Brown": 580, "Multi/Black": 607, "Wood Coat": 678 },
+        "M-28 2.0mm": { "Dull/Silver": 643, "Champagne/PC": 645, "Sahara/Brown": 690, "Multi/Black": 722, "Wood Coat": 806 },
+        "M-24 2.0mm": { "Dull/Silver": 603, "Champagne/PC": 605, "Sahara/Brown": 647, "Multi/Black": 678, "Wood Coat": 756 },
+
+        "M-24A 1.2mm": { "Dull/Silver": 369, "Champagne/PC": 371, "Sahara/Brown": 397, "Multi/Black": 416, "Wood Coat": 464 },
+        "M-24A 1.6mm": { "Dull/Silver": 472, "Champagne/PC": 474, "Sahara/Brown": 507, "Multi/Black": 531, "Wood Coat": 593 },
+        "M-24A 2.0mm": { "Dull/Silver": 570, "Champagne/PC": 572, "Sahara/Brown": 612, "Multi/Black": 641, "Wood Coat": 715 },
+        "M-24F 1.2mm": { "Dull/Silver": 272, "Champagne/PC": 274, "Sahara/Brown": 293, "Multi/Black": 307, "Wood Coat": 343 },
+
+        "D-54F 1.2mm": { "Dull/Silver": 484, "Champagne/PC": 486, "Sahara/Brown": 520, "Multi/Black": 544, "Wood Coat": 608 },
+        "D-54F 1.6mm": { "Dull/Silver": 580, "Champagne/PC": 582, "Sahara/Brown": 623, "Multi/Black": 652, "Wood Coat": 728 },
+        "D-54F 2.0mm": { "Dull/Silver": 700, "Champagne/PC": 702, "Sahara/Brown": 751, "Multi/Black": 786, "Wood Coat": 878 },
+        
+        "D-51F 1.2mm": { "Dull/Silver": 528, "Champagne/PC": 530, "Sahara/Brown": 567, "Multi/Black": 594, "Wood Coat": 663 },
+        "D-51F 1.6mm": { "Dull/Silver": 663, "Champagne/PC": 665, "Sahara/Brown": 712, "Multi/Black": 745, "Wood Coat": 831 },
+        "D-51F 2.0mm": { "Dull/Silver": 802, "Champagne/PC": 804, "Sahara/Brown": 860, "Multi/Black": 900, "Wood Coat": 1005 },
+        
+        "D-54A 1.2mm": { "Dull/Silver": 395, "Champagne/PC": 397, "Sahara/Brown": 425, "Multi/Black": 445, "Wood Coat": 496 },
+        "D-54A 1.6mm": { "Dull/Silver": 482, "Champagne/PC": 484, "Sahara/Brown": 518, "Multi/Black": 542, "Wood Coat": 605 },
+        "D-54A 2.0mm": { "Dull/Silver": 578, "Champagne/PC": 580, "Sahara/Brown": 621, "Multi/Black": 650, "Wood Coat": 725 },
+        
+        "D-51A 1.2mm": { "Dull/Silver": 451, "Champagne/PC": 453, "Sahara/Brown": 485, "Multi/Black": 507, "Wood Coat": 566 },
+        "D-51A 1.6mm": { "Dull/Silver": 557, "Champagne/PC": 559, "Sahara/Brown": 598, "Multi/Black": 626, "Wood Coat": 699 },
+        "D-51A 2.0mm": { "Dull/Silver": 672, "Champagne/PC": 674, "Sahara/Brown": 721, "Multi/Black": 755, "Wood Coat": 843 },
+        
+        "D-50 1.2mm": { "Dull/Silver": 551, "Champagne/PC": 553, "Sahara/Brown": 592, "Multi/Black": 619, "Wood Coat": 691 },
+        "D-50 1.6mm": { "Dull/Silver": 705, "Champagne/PC": 707, "Sahara/Brown": 756, "Multi/Black": 792, "Wood Coat": 884 },
+        "D-50 2.0mm": { "Dull/Silver": 849, "Champagne/PC": 851, "Sahara/Brown": 911, "Multi/Black": 953, "Wood Coat": 1064 },
+        
+        "D-50A 1.2mm": { "Dull/Silver": 488, "Champagne/PC": 490, "Sahara/Brown": 524, "Multi/Black": 549, "Wood Coat": 613 },
+        "D-50A 1.6mm": { "Dull/Silver": 582, "Champagne/PC": 584, "Sahara/Brown": 625, "Multi/Black": 654, "Wood Coat": 730 },
+        "D-50A 2.0mm": { "Dull/Silver": 708, "Champagne/PC": 710, "Sahara/Brown": 760, "Multi/Black": 795, "Wood Coat": 888 },
+        
+        "D-50B 1.6mm": { "Dull/Silver": 886, "Champagne/PC": 888, "Sahara/Brown": 950, "Multi/Black": 995, "Wood Coat": 1110 },
+        "D-50B 2.0mm": { "Dull/Silver": 1091, "Champagne/PC": 1093, "Sahara/Brown": 1170, "Multi/Black": 1224, "Wood Coat": 1366 },
+        
+        "D-46 1.2mm": { "Dull/Silver": 859, "Champagne/PC": 861, "Sahara/Brown": 921, "Multi/Black": 964, "Wood Coat": 1076 },
+        "D-46 1.6mm": { "Dull/Silver": 1085, "Champagne/PC": 1087, "Sahara/Brown": 1163, "Multi/Black": 1217, "Wood Coat": 1359 },
+        "D-46 2.0mm": { "Dull/Silver": 1331, "Champagne/PC": 1333, "Sahara/Brown": 1426, "Multi/Black": 1493, "Wood Coat": 1666 },
+        
+        "D-40 1.2mm": { "Dull/Silver": 478, "Champagne/PC": 480, "Sahara/Brown": 514, "Multi/Black": 538, "Wood Coat": 600 },
+        "D-40 1.6mm": { "Dull/Silver": 540, "Champagne/PC": 542, "Sahara/Brown": 580, "Multi/Black": 607, "Wood Coat": 678 },
+        "D-40 2.0mm": { "Dull/Silver": 665, "Champagne/PC": 667, "Sahara/Brown": 714, "Multi/Black": 747, "Wood Coat": 834 },
+        
+        "D-59 1.2mm": { "Dull/Silver": 535, "Champagne/PC": 537, "Sahara/Brown": 575, "Multi/Black": 601, "Wood Coat": 671 },
+        "D-59 1.6mm": { "Dull/Silver": 626, "Champagne/PC": 628, "Sahara/Brown": 672, "Multi/Black": 703, "Wood Coat": 785 },
+        "D-59 2.0mm": { "Dull/Silver": 744, "Champagne/PC": 746, "Sahara/Brown": 798, "Multi/Black": 836, "Wood Coat": 933 },
+
+        "D-59A 1.2mm": { "Dull/Silver": 548, "Champagne/PC": 550, "Sahara/Brown": 589, "Multi/Black": 616, "Wood Coat": 688 },
+        "D-59A 1.6mm": { "Dull/Silver": 674, "Champagne/PC": 676, "Sahara/Brown": 723, "Multi/Black": 757, "Wood Coat": 845 },
+        "D-59A 2.0mm": { "Dull/Silver": 819, "Champagne/PC": 821, "Sahara/Brown": 878, "Multi/Black": 920, "Wood Coat": 1026 },
+
+        "D-41 1.2mm": { "Dull/Silver": 182, "Champagne/PC": 183, "Sahara/Brown": 196, "Multi/Black": 205, "Wood Coat": 229 },
+        "D-42 1.2mm": { "Dull/Silver": 318, "Champagne/PC": 320, "Sahara/Brown": 342, "Multi/Black": 358, "Wood Coat": 400 },
+        "D-42F 1.2mm": { "Dull/Silver": 406, "Champagne/PC": 408, "Sahara/Brown": 437, "Multi/Black": 458, "Wood Coat": 510 },
+        "D-52 1.2mm": { "Dull/Silver": 432, "Champagne/PC": 434, "Sahara/Brown": 464, "Multi/Black": 486, "Wood Coat": 543 },
+        "D-29 1.2mm": { "Dull/Silver": 273, "Champagne/PC": 274, "Sahara/Brown": 293, "Multi/Black": 307, "Wood Coat": 343 },
+        
+        "D-57 4mm": { "Dull/Silver": 934, "Champagne/PC": 936, "Sahara/Brown": 1002, "Multi/Black": 1048, "Wood Coat": 1170 },
+        "D-58 4mm": { "Dull/Silver": 570, "Champagne/PC": 572, "Sahara/Brown": 612, "Multi/Black": 641, "Wood Coat": 715 },
+
+        "DG-26 F 1.2mm": { "Dull/Silver": 915, "Champagne/PC": 933, "Sahara/Brown": 998, "Multi/Black": 1045, "Wood Coat": 1167 },
+        "DG-26 1.2mm": { "Dull/Silver": 865, "Champagne/PC": 867, "Sahara/Brown": 928, "Multi/Black": 971, "Wood Coat": 1084 }, 
+        
+        "DG-23 1.2mm": { "Dull/Silver": 511, "Champagne/PC": 513, "Sahara/Brown": 549, "Multi/Black": 575, "Wood Coat": 641 },
+        "DG-23A 1.2mm": { "Dull/Silver": 570, "Champagne/PC": 572, "Sahara/Brown": 612, "Multi/Black": 641, "Wood Coat": 715 },
+
+        "DG-28 1.2mm": { "Dull/Silver": 220, "Champagne/PC": 222, "Sahara/Brown": 238, "Multi/Black": 249, "Wood Coat": 278 }, 
+        
+        "DG-29 1.2mm": { "Dull/Silver": 351, "Champagne/PC": 352, "Sahara/Brown": 377, "Multi/Black": 394, "Wood Coat": 440 }, 
+
+        "DG-26 F 1.6mm": { "Dull/Silver": 1231, "Champagne/PC": 1233, "Sahara/Brown": 1319, "Multi/Black": 1381, "Wood Coat": 1541 },
+        "DG-26 1.6mm": { "Dull/Silver": 1118, "Champagne/PC": 1120, "Sahara/Brown": 1198, "Multi/Black": 1254, "Wood Coat": 1400 },
+        "DG-26A 1.6mm": { "Dull/Silver": 1231, "Champagne/PC": 1233, "Sahara/Brown": 1319, "Multi/Black": 1381, "Wood Coat": 1541 },
+        
+        "DG-23 1.6mm": { "Dull/Silver": 636, "Champagne/PC": 638, "Sahara/Brown": 683, "Multi/Black": 715, "Wood Coat": 798 },
+        "DG-23A 1.6mm": { "Dull/Silver": 689, "Champagne/PC": 691, "Sahara/Brown": 739, "Multi/Black": 774, "Wood Coat": 864 },
+
+        "DG-26 F 2.0mm": { "Dull/Silver": 1482, "Champagne/PC": 1484, "Sahara/Brown": 1588, "Multi/Black": 1662, "Wood Coat": 1855 },
+        "DG-26 2.0mm": { "Dull/Silver": 1349, "Champagne/PC": 1351, "Sahara/Brown": 1446, "Multi/Black": 1513, "Wood Coat": 1689 },
+        "DG-26A 2.0mm": { "Dull/Silver": 1560, "Champagne/PC": 1562, "Sahara/Brown": 1671, "Multi/Black": 1749, "Wood Coat": 1953 },
+        
+        "DG-23 2.0mm": { "Dull/Silver": 757, "Champagne/PC": 759, "Sahara/Brown": 812, "Multi/Black": 850, "Wood Coat": 949 },
+        "DG-23A 2.0mm": { "Dull/Silver": 819, "Champagne/PC": 821, "Sahara/Brown": 878, "Multi/Black": 920, "Wood Coat": 1026 },
+        
+        "J.B 1.2mm": { "Dull/Silver": 80, "Champagne/PC": 80, "Sahara/Brown": 80, "Multi/Black": 80, "Wood Coat": 80 },
+        "J.B 1.6mm": { "Dull/Silver": 80, "Champagne/PC": 80, "Sahara/Brown": 80, "Multi/Black": 80, "Wood Coat": 80 },
+        "J.B 2.0mm": { "Dull/Silver": 80, "Champagne/PC": 80, "Sahara/Brown": 80, "Multi/Black": 80, "Wood Coat": 80 },
+    };
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('dc');
+      const [toast, setToast] = useState(null);
+
+      const showToast = (msg, type='success') => setToast({ msg, type });
+
+      const [rateList, setRateList] = useState(() => {
+        const savedRates = localStorage.getItem('alumAppRatesDataV4');
+        let parsed = defaultRates;
+        if (savedRates) {
+          try { 
+            const oldRates = JSON.parse(savedRates);
+            parsed = { ...defaultRates, ...oldRates }; 
+          } catch (e) { console.error("Error", e); }
+        }
+        return parsed; 
+      });
+
+      const [profile, setProfile] = useState(() => {
+        const savedProfile = localStorage.getItem('alumAppProfileData');
+        if (savedProfile) {
+          try { return JSON.parse(savedProfile); } catch (e) { console.error("Error", e); }
+        }
+        return {
+          name: 'Sufyan Dhillon', mobile: '03086498828', shopName: 'Alhussan traders', shopContact: '03208484199', address: 'Gujranwala, Pakistan'
+        };
+      });
+
+      const [input, setInput] = useState({
+        type: 'Sliding', palla: '2', panelQty: '1', thickness: '1.2mm*75mm', w: '', h: '', qty: '', 
+        doorFrame: 'D-54F', doorPalla: 'D-50A', doorMidRail: 'D-52', doorBottomRail: 'D-46',
+        fixedFrame: 'D-54F', openableFrame: 'D-54F', openablePalla: 'D-50A',
+        dgFrame: 'DG-26 F', dgPalla: 'DG-23',
+        dividerWQty: '', dividerHQty: '', dividerType: 'M-24A',
+        colorCategory: 'Champagne/PC', specificColor: 'GR 9016 HG (White)',
+        panelMaterial: 'Glass', glassColor: 'Dark Blue', sheetColor: '#cbd5e1', isMercury: true,
+        // NEW: Arch variables
+        hasArch: false, archType: 'Full Round', archHeight: '', archFrame: 'D-54A', archThickness: '1.2mm'
+      });
+
+      const [items, setItems] = useState([]);
+      const [billing, setBilling] = useState({ discountPct: '', glassRate: '', hardwareRate: '', laborRate: '', additional: '' });
+      const [editSection, setEditSection] = useState('M-23 1.2mm');
+
+      const handleCategoryChange = (cat) => setInput({...input, colorCategory: cat, specificColor: catalogColors[cat][0]});
+
+      const fetchRate = (baseSec, thick) => {
+        let targetKey = `${baseSec} ${thick}`;
+        if (rateList[targetKey]) return { section: `${baseSec} (${thick})`, rate: rateList[targetKey][input.colorCategory] || 0 };
+        if (rateList[`${baseSec} 1.2mm`]) return { section: `${baseSec} (1.2mm)`, rate: rateList[`${baseSec} 1.2mm`][input.colorCategory] || 0 };
+        if (rateList[`${baseSec} 4mm`]) return { section: `${baseSec} (4mm)`, rate: rateList[`${baseSec} 4mm`][input.colorCategory] || 0 };
+        return { section: baseSec, rate: 0 };
+      };
+
+      const handleAddItem = () => {
+        if (!input.w || !input.h || !input.qty) return showToast("Please enter W, H, and Qty.", "error");
+        
+        const w = parseFloat(input.w); const h = parseFloat(input.h); const q = parseInt(input.qty);
+        
+        // Arch Geometry Calculations
+        let ah = 0;
+        if (input.hasArch && activeTab !== 'dg') {
+            if (input.archType === 'Full Round') ah = w / 2;
+            else {
+                ah = parseFloat(input.archHeight) || 0;
+                if (ah > w/2) ah = w/2; 
+            }
+        }
+        const totalHeight = h + ah;
+        const sqft = w * totalHeight * q; // Total Area (With Wastage Coverage)
+        
+        let materials = []; let sectionTotal = 0;
+
+        const thickMatch = input.thickness.match(/(\d\.\d)mm/);
+        const thick = thickMatch ? thickMatch[1] + 'mm' : '1.2mm';
+        const isF = input.thickness.includes('F');
+        const isC = input.thickness.includes('C');
+
+        const divW = parseFloat(input.dividerWQty) || 0; 
+        const divH = parseFloat(input.dividerHQty) || 0;
+        
+        let pallaCount = 1;
+        if (input.type === 'Sliding' || activeTab === 'dg') {
+            pallaCount = parseInt(input.palla) || 2;
+        } else if (input.type === 'Door' || input.type === 'Openable') {
+            pallaCount = parseInt(input.panelQty) || 1;
+        }
+
+        const totalDividerFt = (divW * w) + (divH * h * pallaCount);
+
+        if (activeTab === 'dg') {
+            const frameChoice = input.dgFrame || 'DG-26 F';
+            const pallaChoice = input.dgPalla || 'DG-23';
+            const isDgF = frameChoice.includes('F');
+            const frameFt = isDgF ? ((w + 0.25) * 2) + ((h + 0.25) * 2) : (w * 2) + (h * 2);
+            materials = [
+                { ...fetchRate(frameChoice, thick), ft: frameFt * q },
+                { ...fetchRate(pallaChoice, thick), ft: ((h*4)+(w*2)) * q },
+                { ...fetchRate('DG-28', thick), ft: (h*2) * q },
+                { ...fetchRate('DG-29', thick), ft: ((h*2)+w) * q }
+            ];
+            if (totalDividerFt > 0) {
+              materials.push({ ...fetchRate(input.dividerType, thick), ft: totalDividerFt * q });
+              if (input.dividerType === 'D-40' || input.dividerType === 'D-59' || input.dividerType === 'D-59A') materials.push({ ...fetchRate('D-41', thick), ft: (totalDividerFt * 2) * q }); 
+            }
+        } else {
+            // Main structure framing
+            if (input.type === 'Fixed') {
+              const frameChoice = input.fixedFrame || 'D-54F';
+              const isFixedF = frameChoice.includes('F');
+              let frameFt = isFixedF ? ((w + 0.25) * 2) + ((h + 0.25) * 2) : (w * 2) + (h * 2); 
+              materials = [
+                { ...fetchRate(frameChoice, thick), ft: frameFt * q },
+                { ...fetchRate('D-41', thick), ft: ((w * 2) + (h * 2)) * q }
+              ];
+              if (totalDividerFt > 0) {
+                materials.push({ ...fetchRate(input.dividerType, thick), ft: totalDividerFt * q });
+                if (input.dividerType === 'D-40' || input.dividerType === 'D-59' || input.dividerType === 'D-59A') materials.push({ ...fetchRate('D-41', thick), ft: (totalDividerFt * 2) * q }); 
+              }
+            } else if (input.type === 'Openable') {
+              const frameChoice = input.openableFrame || 'D-54F'; const pallaChoice = input.openablePalla || 'D-50A';
+              const isOpenableF = frameChoice.includes('F');
+              let frameFt = isOpenableF ? ((w + 0.5) * 2) + ((h + 0.5) * 2) : (w * 2) + (h * 2); 
+              let pallaFt = (w * 2) + (h * (pallaCount * 2)); 
+              
+              materials = [
+                { ...fetchRate(frameChoice, thick), ft: frameFt * q },
+                { ...fetchRate(pallaChoice, thick), ft: pallaFt * q }
+              ];
+              if (totalDividerFt > 0) {
+                materials.push({ ...fetchRate(input.dividerType, thick), ft: totalDividerFt * q });
+                if (input.dividerType === 'D-40' || input.dividerType === 'D-59' || input.dividerType === 'D-59A') materials.push({ ...fetchRate('D-41', thick), ft: (totalDividerFt * 2) * q }); 
+              }
+            } else if (input.type === 'Door') {
+              const frameChoice = input.doorFrame || 'D-54F'; const pallaChoice = input.doorPalla || 'D-50A';
+              let frameFt = (frameChoice === 'D-54F' || frameChoice === 'D-51F') ? (w + 0.5) + 2 * (h + 0.5) : w + (2 * h); 
+              let pallaFt = w + (h * (pallaCount * 2)); 
+
+              materials = [
+                  { ...fetchRate(frameChoice, thick), ft: frameFt * q },
+                  { ...fetchRate(pallaChoice, thick), ft: pallaFt * q },
+                  { ...fetchRate(input.doorMidRail, thick), ft: w * q },
+                  { ...fetchRate(input.doorBottomRail, thick), ft: w * q }
+              ];
+              if (totalDividerFt > 0) {
+                materials.push({ ...fetchRate(input.dividerType, thick), ft: totalDividerFt * q });
+                if (input.dividerType === 'D-40' || input.dividerType === 'D-59' || input.dividerType === 'D-59A') materials.push({ ...fetchRate('D-41', thick), ft: (totalDividerFt * 2) * q }); 
+              }
+            } else if (input.type === 'Sliding') {
+              const is75mm = input.thickness.includes('75mm'); const is95mm = input.thickness.includes('95mm');
+              let topSideOuterFt = isF ? w + (h * 2) + 1 : w + (h * 2); 
+              let bottomOuterFt = isF ? w + 0.5 : w; 
+              let topOuterSec = isF ? 'DC-30 F' : 'DC-30'; let bottomOuterSec = isF ? 'DC-26 F' : 'DC-26';
+
+              if (is75mm) { topOuterSec = isF ? 'M-30 F' : 'M-30'; bottomOuterSec = isF ? 'M-26 F' : 'M-26'; } 
+              else if (is95mm) { topOuterSec = 'DC-30B'; bottomOuterSec = 'DC-26B'; topSideOuterFt = w + (h * 2); bottomOuterFt = w; }
+              else if (isC) { topOuterSec = 'DC-30C'; bottomOuterSec = 'DC-26C'; }
+
+              materials = [
+                { ...fetchRate(topOuterSec, thick), ft: topSideOuterFt * q },
+                { ...fetchRate(bottomOuterSec, thick), ft: bottomOuterFt * q },
+                { ...fetchRate('M-23', thick), ft: (h * 2) * q },
+                { ...fetchRate('M-28', thick), ft: (h * 2) * q },
+                { ...fetchRate('M-24', thick), ft: (w * 2) * q }
+              ];
+
+              if (!is75mm) materials.push({ ...fetchRate('D-29', thick), ft: (w + (h * 2)) * q });
+              if (totalDividerFt > 0) {
+                materials.push({ ...fetchRate(input.dividerType, thick), ft: totalDividerFt * q });
+                if (input.dividerType === 'D-40' || input.dividerType === 'D-59' || input.dividerType === 'D-59A') materials.push({ ...fetchRate('D-41', thick), ft: (totalDividerFt * 2) * q }); 
+              }
+            }
+
+            // --- ARCH MATERIAL LOGIC ---
+            if (input.hasArch && ah > 0) {
+                // Arc Length Formula: R = h/2 + w^2/(8h). Theta = 2 * arcsin(w/2R). Arc = R * Theta
+                let radius = (ah/2) + ((w*w)/(8*ah));
+                let theta = 2 * Math.asin(w / (2 * radius));
+                let arcLength = radius * theta;
+                
+                let archCurveMat = arcLength + 1; // 1 ft extra cutting margin requested
+                let archBaseMat = w; // Straight bottom part
+                
+                let totalArchFrameMat = archCurveMat + archBaseMat;
+                let archThick = input.archThickness.match(/(\d\.\d)mm/)[1] + 'mm';
+                
+                // Arch Frame Section
+                materials.push({ ...fetchRate(input.archFrame, archThick), ft: totalArchFrameMat * q });
+                // Double D-41 in Arch (Curve + Base)
+                materials.push({ ...fetchRate('D-41', archThick), ft: totalArchFrameMat * q });
+            }
+        }
+
+        materials = materials.map(m => {
+          const amount = m.rate * m.ft;
+          sectionTotal += amount;
+          return { ...m, amount };
+        });
+
+        const categoryLabel = activeTab === 'dg' ? 'DG' : 'DC';
+        setItems([{ id: Date.now(), category: categoryLabel, ...input, w, h, ah, q, sqft, materials, sectionTotal }, ...items]);
+        setInput({ ...input, w: '', h: '', qty: '', dividerWQty: '', dividerHQty: '' });
+        showToast("Item added successfully!");
+      };
+
+      const removeItem = (id) => setItems(items.filter(i => i.id !== id));
+
+      const handleRateChange = (section, colorCat, newRate) => {
+        setRateList(prev => ({ ...prev, [section]: { ...prev[section], [colorCat]: parseFloat(newRate) || 0 } }));
+      };
+
+      const exportRates = () => {
+        const code = btoa(JSON.stringify(rateList));
+        navigator.clipboard.writeText(code);
+        showToast("Rate Code copied! Share with friends.");
+      };
+
+      const importRates = () => {
+        const code = prompt("Paste your friend's Rate Code here:");
+        if (code) {
+          try {
+            const newRates = JSON.parse(atob(code));
+            setRateList(newRates);
+            localStorage.setItem('alumAppRatesDataV4', JSON.stringify(newRates));
+            showToast("Rates updated successfully!");
+          } catch(e) {
+            showToast("Invalid Rate Code!", "error");
+          }
+        }
+      };
+
+      const resetRatesToDefault = () => {
+        if(window.confirm("Restore default company rates? Your manual changes will be lost.")){
+            setRateList(defaultRates);
+            localStorage.setItem('alumAppRatesDataV4', JSON.stringify(defaultRates));
+            showToast("Default rates restored.");
+        }
+      };
+
+      const aggregatedMaterials = useMemo(() => {
+        const map = {};
+        items.forEach(item => {
+          item.materials.forEach(m => {
+            if (!map[m.section]) map[m.section] = { section: m.section, rate: m.rate, ft: 0, amount: 0 };
+            map[m.section].ft += m.ft; map[m.section].amount += m.amount;
+          });
+        });
+        return Object.values(map);
+      }, [items]);
+
+      const totals = useMemo(() => {
+        let rawSubtotal = 0, fixedQty = 0, slidingQty = 0, doorQty = 0, openableQty = 0;
+        let fixedSqft = 0, slidingSqft = 0, doorSqft = 0, openableSqft = 0;
+
+        items.forEach(item => {
+          rawSubtotal += item.sectionTotal;
+          if (item.type === 'Fixed') { fixedQty += item.q; fixedSqft += item.sqft; }
+          else if (item.type === 'Sliding') { slidingQty += item.q; slidingSqft += item.sqft; }
+          else if (item.type === 'Door') { doorQty += item.q; doorSqft += item.sqft; }
+          else if (item.type === 'Openable') { openableQty += item.q; openableSqft += item.sqft; }
+        });
+
+        const totalQty = fixedQty + slidingQty + doorQty + openableQty;
+        const totalSqft = fixedSqft + slidingSqft + doorSqft + openableSqft;
+        let totalMaterialFt = 0; aggregatedMaterials.forEach(m => totalMaterialFt += m.ft);
+
+        const discountAmount = (rawSubtotal * (parseFloat(billing.discountPct) || 0)) / 100;
+        const afterDiscount = rawSubtotal - discountAmount;
+        const glassCost = totalSqft * (parseFloat(billing.glassRate) || 0);
+        const hwCost = totalQty * (parseFloat(billing.hardwareRate) || 0);
+        const laborCost = totalSqft * (parseFloat(billing.laborRate) || 0);
+        const addCost = parseFloat(billing.additional) || 0;
+        const grandTotal = afterDiscount + glassCost + hwCost + laborCost + addCost;
+        const sqftRate = totalSqft > 0 ? (grandTotal / totalSqft) : 0;
+
+        return { 
+          rawSubtotal, discountAmount, afterDiscount, totalQty, totalSqft, totalMaterialFt,
+          fixedQty, slidingQty, doorQty, openableQty, fixedSqft, slidingSqft, doorSqft, openableSqft, 
+          grandTotal, sqftRate, glassCost, hwCost, laborCost 
+        };
+      }, [items, billing, aggregatedMaterials]);
+
+      const shareToWhatsApp = () => {
+        if(items.length === 0) return showToast("Nothing to share!", "error");
+        let txt = `*Quotation from ${profile.shopName}*\n`;
+        txt += `Contact: ${profile.mobile}\n\n`;
+        txt += `*Total Units:* ${totals.totalQty}\n`;
+        txt += `*Total Area:* ${totals.totalSqft.toFixed(2)} Sq.Ft\n\n`;
+        items.forEach((item, i) => {
+          let pallaText = (item.type === 'Door' || item.type === 'Openable') 
+             ? ` (${item.panelQty === '2' ? 'Double Palla' : 'Single Palla'})` 
+             : '';
+          let archText = (item.hasArch && item.ah > 0) ? ` + Arch(${item.ah}ft)` : '';
+          txt += `${i+1}. ${item.category} ${item.type}${pallaText}${archText} (${item.specificColor})\n`;
+          let totalH = parseFloat(item.h) + (item.ah || 0);
+          txt += `Size: ${item.w}' x ${totalH}' | Qty: ${item.q}\n\n`;
+        });
+        txt += `*Grand Total: Rs ${totals.grandTotal.toFixed(0)}*\n`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-100 font-sans pb-28 sm:pb-10 print:bg-white print:pb-0 print:text-black">
+          {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+          
+          <div className="bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 text-white pt-8 pb-10 px-6 shadow-2xl rounded-b-[2.5rem] no-print mb-8">
+            <h1 className="text-2xl font-black text-center tracking-wide mb-1 drop-shadow-md">Aluminium <span className="text-teal-400">Pro Max</span></h1>
+            <p className="text-center text-xs font-bold text-slate-300 uppercase tracking-widest">{activeTab === 'rateManager' ? 'Central Rates Manager' : 'Professional Architecture'}</p>
+          </div>
+
+          <div className="max-w-md mx-auto px-4 print:max-w-none print:px-0">
+            
+            {(activeTab === 'dc' || activeTab === 'dg') && (
+              <div className="no-print">
+
+                <div className="mb-6 rounded-3xl overflow-hidden shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 bg-white">
+                  <Visualizer {...input} type={activeTab === 'dg' ? 'Sliding' : input.type} />
+                  
+                  <div className="p-4 bg-white border-t border-slate-200">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Panel Material</span>
+                      <div className="flex gap-2">
+                        <button onClick={()=>setInput({...input, panelMaterial: 'Glass'})} className={`px-3 py-1 rounded-full text-[10px] font-bold ${input.panelMaterial==='Glass'?'bg-teal-600 text-white shadow':'bg-slate-100 text-slate-500'}`}>Glass</button>
+                        <button onClick={()=>setInput({...input, panelMaterial: 'Sheet'})} className={`px-3 py-1 rounded-full text-[10px] font-bold ${input.panelMaterial==='Sheet'?'bg-teal-600 text-white shadow':'bg-slate-100 text-slate-500'}`}>ACP/Sheet</button>
+                      </div>
+                    </div>
+
+                    {input.panelMaterial === 'Glass' ? (
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-[10px] font-bold text-slate-400">Glass Colors</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[9px] font-bold text-slate-500">Reflective(Mercury)</span>
+                            <div className="relative inline-block w-8 align-middle select-none">
+                              <input type="checkbox" checked={input.isMercury} onChange={e => setInput({...input, isMercury: e.target.checked})} className="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 border-slate-300 appearance-none cursor-pointer z-10 top-0 left-0" />
+                              <label className="toggle-label block overflow-hidden h-4 rounded-full bg-slate-300 cursor-pointer"></label>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex overflow-x-auto gap-4 pb-2 snap-x">
+                          {glassColorOptions.map(gc => (
+                            <div key={gc.name} onClick={() => setInput({...input, glassColor: gc.name})} className={`snap-center shrink-0 flex flex-col items-center gap-1.5 cursor-pointer transition-all ${input.glassColor === gc.name ? 'scale-110 opacity-100' : 'opacity-60 hover:opacity-100'}`}>
+                              <div className={`w-8 h-8 rounded-full border-2 ${input.glassColor === gc.name ? 'border-teal-500 shadow-md' : 'border-slate-300'} ${gc.bg} bg-gradient-to-br from-white/40 to-transparent`}></div>
+                              <span className="text-[9px] font-bold text-slate-700 whitespace-nowrap">{gc.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 mb-2 block">Sheet Colors (DLXBOND/Guardian)</span>
+                        <div className="flex overflow-x-auto gap-4 pb-2 snap-x">
+                          {sheetColorOptions.map(sc => (
+                            <div key={sc.name} onClick={() => setInput({...input, sheetColor: sc.hex})} className={`snap-center shrink-0 flex flex-col items-center gap-1.5 cursor-pointer transition-all ${input.sheetColor === sc.hex ? 'scale-110 opacity-100' : 'opacity-60 hover:opacity-100'}`}>
+                              <div className={`w-8 h-8 rounded-sm border-2 ${input.sheetColor === sc.hex ? 'border-teal-500 shadow-md' : 'border-slate-300'}`} style={{backgroundColor: sc.hex}}></div>
+                              <span className="text-[9px] font-bold text-slate-700 whitespace-nowrap">{sc.name.split(' ')[0]}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 mb-6 border border-slate-100 relative overflow-hidden">
+                  
+                  {/* ARCH SETTINGS CARD */}
+                  {activeTab !== 'dg' && (
+                    <div className="bg-sky-50 border border-sky-100 rounded-2xl p-4 mb-5 shadow-sm">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-xs font-black text-sky-800 uppercase tracking-wider">Top Arch (Golai)</h4>
+                        <div className="relative inline-block w-10 align-middle select-none">
+                          <input type="checkbox" checked={input.hasArch} onChange={e => setInput({...input, hasArch: e.target.checked})} className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-300 appearance-none cursor-pointer z-10 top-0 left-0 transition-all checked:right-0 checked:border-sky-500" />
+                          <label className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors ${input.hasArch?'bg-sky-500':'bg-slate-300'}`}></label>
+                        </div>
+                      </div>
+                      
+                      {input.hasArch && (
+                        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-sky-200/50">
+                          <div className="col-span-2">
+                            <label className="block text-[10px] font-bold text-sky-700 uppercase mb-1.5">Arch Type</label>
+                            <div className="flex bg-white p-1 rounded-xl shadow-sm border border-sky-100">
+                                <label className={`flex-1 text-center py-2 rounded-lg cursor-pointer text-[11px] font-bold transition-all ${input.archType === 'Full Round' ? 'bg-sky-500 text-white shadow' : 'text-sky-700 hover:bg-sky-50'}`}>
+                                  <input type="radio" checked={input.archType === 'Full Round'} onChange={() => setInput({...input, archType:'Full Round'})} className="hidden" /> Full Round (1/2 Width)
+                                </label>
+                                <label className={`flex-1 text-center py-2 rounded-lg cursor-pointer text-[11px] font-bold transition-all ${input.archType === 'Kamani' ? 'bg-sky-500 text-white shadow' : 'text-sky-700 hover:bg-sky-50'}`}>
+                                  <input type="radio" checked={input.archType === 'Kamani'} onChange={() => setInput({...input, archType:'Kamani'})} className="hidden" /> Kamani (Custom H)
+                                </label>
+                            </div>
+                          </div>
+                          
+                          {input.archType === 'Kamani' && (
+                            <div className="col-span-2">
+                               <label className="block text-[10px] font-bold text-sky-700 uppercase mb-1.5">Arch Height (Ft)</label>
+                               <input type="number" value={input.archHeight} onChange={e => setInput({...input, archHeight: e.target.value})} placeholder="e.g 1.5" className="w-full bg-white border border-sky-100 rounded-xl p-2.5 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm" />
+                            </div>
+                          )}
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-sky-700 uppercase mb-1.5">Arch Frame</label>
+                            <div className="relative">
+                              <select value={input.archFrame} onChange={e => setInput({...input, archFrame: e.target.value})} className="w-full bg-white border border-sky-100 rounded-xl p-2.5 text-slate-800 text-xs font-bold appearance-none shadow-sm focus:ring-2 focus:ring-sky-500">
+                                <option value="D-54A">D-54A</option><option value="D-54F">D-54F</option><option value="D-51A">D-51A</option><option value="D-51F">D-51F</option><option value="D-42">D-42</option><option value="D-42F">D-42F</option>
+                              </select>
+                              <div className="absolute right-2 top-2.5 text-sky-400 pointer-events-none"><IconChevronDown /></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-sky-700 uppercase mb-1.5">Thickness</label>
+                            <div className="relative">
+                              <select value={input.archThickness} onChange={e => setInput({...input, archThickness: e.target.value})} className="w-full bg-white border border-sky-100 rounded-xl p-2.5 text-slate-800 text-xs font-bold appearance-none shadow-sm focus:ring-2 focus:ring-sky-500">
+                                <option>1.2mm</option><option>1.6mm</option><option>2.0mm</option>
+                              </select>
+                              <div className="absolute right-2 top-2.5 text-sky-400 pointer-events-none"><IconChevronDown /></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 mb-5">
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Structure Type</label>
+                      {activeTab === 'dc' ? (
+                        <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1.5 rounded-xl">
+                            {['Fixed', 'Sliding', 'Door', 'Openable'].map(t => (
+                              <label key={t} className={`text-center py-2 rounded-lg cursor-pointer text-[11px] sm:text-xs font-bold transition-all ${input.type === t ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <input type="radio" checked={input.type === t} onChange={() => setInput({...input, type:t, thickness: t==='Sliding'?'1.2mm*75mm':'1.2mm', dividerType: t==='Sliding'?'M-24A':(t==='Door'?'D-52':'D-40')})} className="hidden" /> {t}
+                              </label>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1.5 rounded-xl w-1/2">
+                            <label className="text-center py-2 rounded-lg cursor-pointer text-[11px] sm:text-xs font-bold bg-white shadow-sm text-slate-800"><input type="radio" checked={true} readOnly className="hidden" /> Sliding</label>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {activeTab === 'dc' && input.type === 'Fixed' && (
+                    <div className="mb-5"><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Fixed Frame</label><div className="relative"><select value={input.fixedFrame} onChange={e => setInput({...input, fixedFrame: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-50 appearance-none"><option value="D-54F">D-54F</option><option value="D-51F">D-51F</option><option value="D-54A">D-54A</option><option value="D-51A">D-51A</option><option value="D-42F">D-42F</option><option value="D-42">D-42</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div>
+                  )}
+                  {activeTab === 'dc' && input.type === 'Openable' && (
+                    <div className="grid grid-cols-2 gap-3 mb-5"><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Frame</label><div className="relative"><select value={input.openableFrame} onChange={e => setInput({...input, openableFrame: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-50 appearance-none"><option value="D-54F">D-54F</option><option value="D-51F">D-51F</option><option value="D-42F">D-42F</option><option value="D-54A">D-54A</option><option value="D-51A">D-51A</option><option value="D-42">D-42</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Palla</label><div className="relative"><select value={input.openablePalla} onChange={e => setInput({...input, openablePalla: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-50 appearance-none"><option value="D-50A">D-50A</option><option value="D-50">D-50</option><option value="D-50B">D-50B</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div></div>
+                  )}
+                  {activeTab === 'dc' && input.type === 'Door' && (
+                    <div className="grid grid-cols-2 gap-3 mb-5">
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Frame</label><div className="relative"><select value={input.doorFrame} onChange={e => setInput({...input, doorFrame: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-50 appearance-none"><option value="D-54F">D-54F</option><option value="D-51F">D-51F</option><option value="D-54A">D-54A</option><option value="D-51A">D-51A</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div>
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Palla</label><div className="relative"><select value={input.doorPalla} onChange={e => setInput({...input, doorPalla: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-50 appearance-none"><option value="D-50A">D-50A</option><option value="D-50">D-50</option><option value="D-50B">D-50B</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div>
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Mid Rail</label><div className="relative"><select value={input.doorMidRail} onChange={e => setInput({...input, doorMidRail: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold appearance-none"><option value="D-52">D-52</option><option value="D-46">D-46</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div>
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Bottom Rail</label><div className="relative"><select value={input.doorBottomRail} onChange={e => setInput({...input, doorBottomRail: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold appearance-none"><option value="D-46">D-46</option><option value="D-58">D-58</option><option value="D-57">D-57</option></select><div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div></div></div>
+                    </div>
+                  )}
+
+                  {/* DG SPECIFIC CONTROLS */}
+                  {activeTab === 'dg' && (
+                    <div className="grid grid-cols-2 gap-3 mb-5">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">DG Frame</label>
+                        <div className="relative">
+                          <select value={input.dgFrame} onChange={e => setInput({...input, dgFrame: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold appearance-none">
+                            <option value="DG-26 F">DG-26 F</option>
+                            <option value="DG-26">DG-26</option>
+                            <option value="DG-26A">DG-26A</option>
+                          </select>
+                          <div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">DG Palla</label>
+                        <div className="relative">
+                          <select value={input.dgPalla} onChange={e => setInput({...input, dgPalla: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 font-bold appearance-none">
+                            <option value="DG-23">DG-23</option>
+                            <option value="DG-23A">DG-23A</option>
+                          </select>
+                          <div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {(input.type === 'Sliding' || activeTab === 'dg') && (
+                    <div className="mb-5"><label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Track Quantity</label><div className="flex bg-slate-100 p-1.5 rounded-xl w-1/2"><label className={`flex-1 text-center py-2 rounded-lg cursor-pointer text-sm font-bold transition-all ${input.palla === '2' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'} `}><input type="radio" checked={input.palla === '2'} onChange={() => setInput({...input, palla:'2'})} className="hidden" /> 2 Track</label>{activeTab === 'dc' && (<label className={`flex-1 text-center py-2 rounded-lg cursor-pointer text-sm font-bold transition-all ${input.palla === '3' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'} `}><input type="radio" checked={input.palla === '3'} onChange={() => setInput({...input, palla:'3'})} className="hidden" /> 3 Track</label>)}</div></div>
+                  )}
+
+                  {(input.type === 'Door' || input.type === 'Openable') && (
+                    <div className="mb-5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Palla / Panel Quantity</label>
+                      <div className="flex bg-slate-100 p-1.5 rounded-xl">
+                        <label className={`flex-1 text-center py-2 rounded-lg cursor-pointer text-sm font-bold transition-all ${input.panelQty === '1' ? 'bg-white shadow-sm text-teal-800 border border-teal-200' : 'text-slate-500 hover:text-slate-700'} `}>
+                          <input type="radio" checked={input.panelQty === '1'} onChange={() => setInput({...input, panelQty:'1'})} className="hidden" /> Single Palla
+                        </label>
+                        <label className={`flex-1 text-center py-2 rounded-lg cursor-pointer text-sm font-bold transition-all ${input.panelQty === '2' ? 'bg-white shadow-sm text-teal-800 border border-teal-200' : 'text-slate-500 hover:text-slate-700'} `}>
+                          <input type="radio" checked={input.panelQty === '2'} onChange={() => setInput({...input, panelQty:'2'})} className="hidden" /> Double Palla
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-600 uppercase mb-1.5 ml-1">Pricing Category</label>
+                      <div className="relative">
+                        <select value={input.colorCategory} onChange={e => handleCategoryChange(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-slate-800 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none shadow-sm">
+                          {Object.keys(catalogColors).map(cat => <option key={cat}>{cat}</option>)}
+                        </select>
+                        <div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-600 uppercase mb-1.5 ml-1">Specific Shade</label>
+                      <div className="relative">
+                        <select value={input.specificColor} onChange={e => setInput({...input, specificColor: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-slate-800 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none shadow-sm">
+                          {catalogColors[input.colorCategory].map(color => <option key={color}>{color}</option>)}
+                        </select>
+                        <div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"><IconChevronDown /></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Thickness & Section</label>
+                    <div className="relative">
+                      <select value={input.thickness} onChange={e => setInput({...input, thickness: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white appearance-none transition-all shadow-sm">
+                        {activeTab === 'dg' ? (
+                          <><option>1.2mm*100mm</option><option>1.6mm*100mm</option><option>2.0mm*100mm</option></>
+                        ) : input.type === 'Door' || input.type === 'Fixed' || input.type === 'Openable' ? (
+                          <><option>1.2mm</option><option>1.6mm</option><option>2.0mm</option></>
+                        ) : (
+                          <><option>1.2mm*75mm</option><option>1.6mm*75mm</option><option>2.0mm*75mm</option><option>1.2mm*75mm F</option><option>1.6mm*75mm F</option><option>2.0mm*75mm F</option><option>1.2mm*95mm</option><option>1.6mm*95mm</option><option>2.0mm*95mm</option><option>1.2mm*100mm</option><option>1.6mm*100mm</option><option>2.0mm*100mm</option><option>1.2mm*100mm F</option><option>1.6mm*100mm F</option><option>2.0mm*100mm F</option><option>1.2mm*100mm C</option><option>1.6mm*100mm C</option><option>2.0mm*100mm C</option></>
+                        )}
+                      </select>
+                      <div className="absolute right-4 top-4 text-slate-400 pointer-events-none"><IconChevronDown /></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5 shadow-sm">
+                    <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-3">Design Dividers (Grilles)</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Horiz. (W)</label>
+                        <input type="number" value={input.dividerWQty} onChange={e => setInput({...input, dividerWQty: e.target.value})} placeholder="Qty" className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Vert. (H)</label>
+                        <input type="number" value={input.dividerHQty} onChange={e => setInput({...input, dividerHQty: e.target.value})} placeholder="Qty" className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Type</label>
+                        <div className="relative">
+                          <select value={input.dividerType} onChange={e => setInput({...input, dividerType: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 outline-none appearance-none">
+                            {input.type === 'Sliding' ? (
+                              <><option value="M-24A">M-24A</option><option value="M-24F">M-24F</option><option value="J.B">J.B</option><option value="D-59A">D-59A</option></>
+                            ) : input.type === 'Door' ? (
+                              <><option value="D-52">D-52</option><option value="D-46">D-46</option><option value="D-59A">D-59A</option></>
+                            ) : (
+                              <><option value="D-40">D-40</option><option value="D-59">D-59</option><option value="D-59A">D-59A</option><option value="D-52">D-52</option></>
+                            )}
+                          </select>
+                          <div className="absolute right-2 top-3 text-slate-400 pointer-events-none"><IconChevronDown /></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    <InputField label="Width (ft)" type="number" value={input.w} onChange={v => setInput({...input, w: v})} placeholder="e.g. 4" />
+                    <InputField label="Main H (ft)" type="number" value={input.h} onChange={v => setInput({...input, h: v})} placeholder="e.g. 4" />
+                    <InputField label="Qty" type="number" value={input.qty} onChange={v => setInput({...input, qty: v})} placeholder="e.g. 1" />
+                  </div>
+
+                  <button onClick={handleAddItem} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl flex justify-center items-center gap-2 shadow-xl transform active:scale-[0.98] transition-all">
+                    <IconPlus /> Add {activeTab === 'dg' ? 'DG' : 'DC'} Element
+                  </button>
+                </div>
+
+                {items.length > 0 && <h3 className="font-extrabold text-slate-800 mb-3 px-2 text-lg">Added Elements</h3>}
+                {items.map((item) => (
+                  <div key={item.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm mb-4 overflow-hidden flex flex-row transition-all hover:shadow-md h-32">
+                    <div className="w-1/3 border-r border-slate-100 relative p-1 overflow-hidden bg-slate-50 flex items-center justify-center">
+                      <Visualizer {...item} type={item.category === 'DG' ? 'Sliding' : item.type} mini={true} />
+                    </div>
+                    <div className="w-2/3 flex flex-col justify-between p-1">
+                      <div className="px-3 py-1 flex justify-between items-start">
+                        <div className="truncate">
+                          <h3 className="font-bold text-slate-800 leading-tight text-sm truncate">
+                            {item.category} {item.type}
+                            {(item.type === 'Door' || item.type === 'Openable') && <span className="text-teal-600 text-[10px] ml-1">({item.panelQty === '2' ? 'Double' : 'Single'})</span>}
+                            {(item.hasArch && item.ah > 0) && <span className="text-sky-600 text-[10px] ml-1">+Arch</span>}
+                          </h3>
+                          <p className="text-[9px] text-slate-500 font-medium mt-0.5 truncate">
+                            {item.specificColor} | {item.panelMaterial === 'Sheet' ? `ACP/Sheet` : `${item.glassColor} Glass`}
+                          </p>
+                          {(item.dividerWQty > 0 || item.dividerHQty > 0) && (
+                            <p className="text-[9px] text-blue-600 font-bold mt-0.5 truncate">
+                              + Grille: {item.dividerWQty || 0}W × {item.dividerHQty || 0}H ({item.dividerType})
+                            </p>
+                          )}
+                        </div>
+                        <button onClick={() => removeItem(item.id)} className="text-rose-400 hover:text-rose-600 p-1"><IconTrash /></button>
+                      </div>
+                      <div className="mx-2 mb-2 px-3 py-1.5 flex justify-between text-[11px] font-bold text-slate-700 bg-slate-100 rounded-lg">
+                        <span>{item.w}' × {(parseFloat(item.h)+(item.ah||0)).toFixed(1)}' <span className="text-slate-300 mx-1">|</span> Qty: {item.q}</span>
+                        <span>{item.sqft.toFixed(1)} Sq.Ft</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* MATERIAL & COSTING */}
+                {aggregatedMaterials.length > 0 && (
+                  <div className="bg-white border border-slate-100 rounded-3xl shadow-xl mb-8 overflow-hidden mt-8">
+                    <div className="bg-slate-800 p-4">
+                      <h3 className="font-bold text-white tracking-wide">Overall Material Required</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                          <tr><th className="p-3 text-left font-bold">Section</th><th className="p-3 text-center font-bold">Rate</th><th className="p-3 text-center font-bold">Total Ft</th><th className="p-3 text-right font-bold">Amount</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {aggregatedMaterials.map((m, i) => (
+                            <tr key={i} className="hover:bg-slate-50 transition-colors">
+                              <td className="p-3 text-slate-800 font-bold">{m.section}</td>
+                              <td className="p-3 text-center text-slate-600">{m.rate.toFixed(1)}</td>
+                              <td className="p-3 text-center text-slate-600">{m.ft.toFixed(1)}</td>
+                              <td className="p-3 text-right text-slate-900 font-black">Rs {m.amount.toFixed(0)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="bg-slate-100 p-4 text-right font-black text-slate-900 text-sm border-t border-slate-200">
+                      Overall Subtotal: Rs {totals.rawSubtotal.toFixed(0)}
+                    </div>
+                  </div>
+                )}
+
+                {items.length > 0 && (
+                  <div className="bg-white border border-slate-100 rounded-3xl p-5 sm:p-6 shadow-2xl mb-6 mt-8">
+                    <h2 className="text-xl font-black text-slate-800 mb-5 pb-3 border-b border-slate-100">Final Costing Options</h2>
+                    
+                    <div className="space-y-4 text-sm font-medium text-slate-600">
+                      <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span>Material Amount</span>
+                        <span className="font-black text-slate-800 text-base">Rs {totals.rawSubtotal.toFixed(0)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center px-1">
+                        <span>Discount (%)</span>
+                        <input type="number" value={billing.discountPct} onChange={e => setBilling({...billing, discountPct: e.target.value})} className="border border-slate-200 rounded-lg w-24 text-right bg-white p-2 focus:ring-2 focus:ring-teal-500 outline-none shadow-sm font-bold text-slate-800" />
+                      </div>
+
+                      {billing.discountPct > 0 && (
+                        <div className="flex justify-between items-center bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 -mx-1 px-3 mt-2">
+                          <span className="text-emerald-700 font-bold">After Discount Amount</span>
+                          <span className="font-black text-emerald-800 text-base">Rs {totals.afterDiscount.toFixed(0)}</span>
+                        </div>
+                      )}
+
+                      <div className="h-px bg-slate-100 my-4"></div>
+                      
+                      <div className="flex justify-between items-center px-1">
+                        <div className="flex flex-col">
+                          <span>Glass/Sheet Rate <span className="text-xs text-slate-400 font-normal">(/Sq.ft)</span></span>
+                          {billing.glassRate && <span className="text-xs text-slate-600 font-bold mt-0.5">Total: Rs {totals.glassCost.toFixed(0)}</span>}
+                        </div>
+                        <input type="number" value={billing.glassRate} onChange={e => setBilling({...billing, glassRate: e.target.value})} className="border border-slate-200 rounded-lg w-24 text-right bg-white p-2 focus:ring-2 focus:ring-teal-500 outline-none shadow-sm font-bold text-slate-800" />
+                      </div>
+
+                      <div className="flex justify-between items-center px-1">
+                        <div className="flex flex-col">
+                          <span>Hardware <span className="text-xs text-slate-400 font-normal">(/Item)</span></span>
+                          {billing.hardwareRate && <span className="text-xs text-slate-600 font-bold mt-0.5">Total: Rs {totals.hwCost.toFixed(0)}</span>}
+                        </div>
+                        <input type="number" value={billing.hardwareRate} onChange={e => setBilling({...billing, hardwareRate: e.target.value})} className="border border-slate-200 rounded-lg w-24 text-right bg-white p-2 focus:ring-2 focus:ring-teal-500 outline-none shadow-sm font-bold text-slate-800" />
+                      </div>
+
+                      <div className="flex justify-between items-center px-1">
+                        <div className="flex flex-col">
+                          <span>Labor Rate <span className="text-xs text-slate-400 font-normal">(/Sq.ft)</span></span>
+                          {billing.laborRate && <span className="text-xs text-slate-600 font-bold mt-0.5">Total: Rs {totals.laborCost.toFixed(0)}</span>}
+                        </div>
+                        <input type="number" value={billing.laborRate} onChange={e => setBilling({...billing, laborRate: e.target.value})} className="border border-slate-200 rounded-lg w-24 text-right bg-white p-2 focus:ring-2 focus:ring-teal-500 outline-none shadow-sm font-bold text-slate-800" />
+                      </div>
+
+                      <div className="flex justify-between items-center px-1">
+                        <span>Additional Charges (+)</span>
+                        <input type="number" value={billing.additional} onChange={e => setBilling({...billing, additional: e.target.value})} className="border border-slate-200 rounded-lg w-24 text-right bg-white p-2 focus:ring-2 focus:ring-teal-500 outline-none shadow-sm font-bold text-slate-800" />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900 rounded-[1.25rem] p-5 text-slate-300 mt-6 shadow-xl mb-5">
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm font-medium border-b border-slate-700 pb-4 mb-4">
+                        <div className="flex justify-between pr-3 border-r border-slate-700"><span>Fixed Qty:</span> <span className="text-white font-bold">{totals.fixedQty}</span></div><div className="flex justify-between pl-1"><span>Fixed SqFt:</span> <span className="text-white font-bold">{totals.fixedSqft.toFixed(1)}</span></div>
+                        <div className="flex justify-between pr-3 border-r border-slate-700"><span>Sliding Qty:</span> <span className="text-white font-bold">{totals.slidingQty}</span></div><div className="flex justify-between pl-1"><span>Sliding SqFt:</span> <span className="text-white font-bold">{totals.slidingSqft.toFixed(1)}</span></div>
+                        <div className="flex justify-between pr-3 border-r border-slate-700"><span>Door Qty:</span> <span className="text-white font-bold">{totals.doorQty}</span></div><div className="flex justify-between pl-1"><span>Door SqFt:</span> <span className="text-white font-bold">{totals.doorSqft.toFixed(1)}</span></div>
+                        <div className="flex justify-between pr-3 border-r border-slate-700"><span>Openable Qty:</span> <span className="text-white font-bold">{totals.openableQty}</span></div><div className="flex justify-between pl-1"><span>Openable SqFt:</span> <span className="text-white font-bold">{totals.openableSqft.toFixed(1)}</span></div>
+                      </div>
+                      <div className="flex justify-between items-center mb-2 text-[15px] font-medium"><span className="text-slate-300">Total Area:</span> <span className="text-white font-bold">{totals.totalSqft.toFixed(1)} Sq.Ft</span></div>
+                      <div className="flex justify-between items-center mb-6 text-[15px] font-medium"><span className="text-slate-300">Avg. Rate/Sq.Ft:</span> <span className="text-emerald-400 font-bold">Rs {totals.sqftRate.toFixed(0)}</span></div>
+                      <div className="flex justify-between items-center pt-5 border-t border-slate-700"><span className="text-xl font-bold text-white tracking-wide">Grand Total</span><span className="text-[2rem] font-black text-emerald-400">Rs {totals.grandTotal.toFixed(0)}</span></div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <button onClick={shareToWhatsApp} className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-4 rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg transition-colors">
+                        <IconShare /> Share Quote via WhatsApp
+                      </button>
+                      <div className="flex gap-3">
+                        <button onClick={() => window.print()} className="flex-[2] bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg transition-colors">
+                          <IconPDF /> Generate PDF
+                        </button>
+                        <button onClick={() => {if(window.confirm("Clear all items?")){setItems([]); setBilling({discountPct:'', glassRate:'', hardwareRate:'', laborRate:'', additional:''})}}} className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold transition-colors py-4">
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'rateManager' && (
+              <div className="no-print h-full pb-10">
+                <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 mb-6">
+                  <h2 className="text-xl font-black text-slate-800 mb-2">Pro Sync Options</h2>
+                  <p className="text-xs text-slate-500 font-medium mb-5">HTML apps cannot sync automatically via internet without a server. Use these Pro Tools to share rates with friends offline!</p>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <button onClick={exportRates} className="flex flex-col items-center justify-center p-4 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-2xl transition-colors font-bold text-sm border border-teal-200">
+                      <IconCopy />
+                      <span className="mt-2">1. Export Code</span>
+                      <span className="text-[9px] font-normal mt-1 opacity-70">(Send to friends)</span>
+                    </button>
+                    <button onClick={importRates} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-2xl transition-colors font-bold text-sm border border-slate-200">
+                      <IconSave />
+                      <span className="mt-2">2. Import Code</span>
+                      <span className="text-[9px] font-normal mt-1 opacity-70">(Paste from friend)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-800 mb-4"><IconEdit /></div>
+                      <h2 className="text-xl font-black text-slate-800 mb-1">Manual Rates</h2>
+                    </div>
+                    <button onClick={resetRatesToDefault} className="text-[10px] flex items-center gap-1 font-bold bg-rose-50 text-rose-600 px-3 py-2 rounded-lg hover:bg-rose-100 transition-colors">
+                      <IconRefresh /> Reset Official
+                    </button>
+                  </div>
+                  
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Select Section</label>
+                  <div className="relative mb-6">
+                    <select value={editSection} onChange={e => setEditSection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none shadow-sm">
+                      {Object.keys(rateList).sort().map(sec => <option key={sec} value={sec}>{sec}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-4 text-slate-400"><IconChevronDown /></div>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    {Object.keys(rateList[editSection] || {}).map(color => (
+                      <div key={color} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="text-sm font-bold text-slate-700">{color}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-400">Rs</span>
+                          <input type="number" value={rateList[editSection][color]} onChange={(e) => handleRateChange(editSection, color, e.target.value)} className="border border-slate-200 rounded-lg w-24 text-right p-2 bg-white focus:ring-2 focus:ring-teal-500 outline-none font-bold text-slate-800 shadow-sm" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => {
+                    localStorage.setItem('alumAppRatesDataV4', JSON.stringify(rateList));
+                    showToast(`${editSection} rates saved on device!`);
+                  }} className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-xl flex justify-center items-center gap-2 shadow-xl hover:bg-slate-800 transition-colors">
+                    <IconSave /> Save to Device
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="no-print h-full pb-10">
+                <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+                  <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-800 mb-4"><IconUser /></div>
+                  <h2 className="text-xl font-black text-slate-800 mb-6">Business Profile</h2>
+                  <div className="space-y-1">
+                    <InputField label="Your Name" value={profile.name} onChange={v => setProfile({...profile, name: v})} />
+                    <InputField label="Mobile Number" type="tel" value={profile.mobile} onChange={v => setProfile({...profile, mobile: v})} />
+                    <InputField label="Shop Name" value={profile.shopName} onChange={v => setProfile({...profile, shopName: v})} />
+                    <InputField label="Shop Contact" type="tel" value={profile.shopContact} onChange={v => setProfile({...profile, shopContact: v})} />
+                    <div className="mb-4 pt-1">
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Shop Address</label>
+                      <textarea value={profile.address} onChange={e => setProfile({...profile, address: e.target.value})} rows="3" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm" />
+                    </div>
+                  </div>
+                  <button onClick={() => {
+                      localStorage.setItem('alumAppProfileData', JSON.stringify(profile));
+                      showToast("Profile Saved Successfully!"); 
+                      setTimeout(() => setActiveTab('dc'), 1000);
+                  }} className="w-full mt-4 bg-slate-900 text-white font-bold py-4 rounded-xl shadow-xl hover:bg-slate-800 transition-colors">Save Profile</button>
+                </div>
+              </div>
+            )}
+
+            <div className="print-only max-w-[210mm] mx-auto min-h-screen bg-white text-slate-900 pb-10">
+              
+              <div className="bg-slate-900 text-white p-8 rounded-2xl shadow-sm mb-6 flex justify-between items-center print:bg-slate-800">
+                <div>
+                  <h1 className="text-4xl font-black uppercase tracking-widest">{profile.shopName || 'ALUMINIUM SHOP'}</h1>
+                  <p className="text-slate-300 text-lg mt-1 font-medium">{profile.address}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-xl mb-1">{profile.name}</p>
+                  <p className="text-slate-300 font-medium text-lg">{profile.mobile} <br/> {profile.shopContact}</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-5 rounded-xl flex justify-between items-center text-slate-800 font-bold mb-8 text-base border-l-4 border-slate-800 print:bg-slate-50">
+                <div className="flex flex-col"><span className="text-xs text-slate-500 uppercase tracking-wider">Invoice Date</span><span className="text-lg">{new Date().toLocaleDateString()}</span></div>
+                <div className="flex flex-col items-center"><span className="text-xs text-slate-500 uppercase tracking-wider">Total Items</span><span className="text-lg">{totals.totalQty} Units</span></div>
+                <div className="flex flex-col items-center"><span className="text-xs text-slate-500 uppercase tracking-wider">Total Area</span><span className="text-lg text-slate-900">{totals.totalSqft.toFixed(2)} Sq.Ft</span></div>
+                <div className="flex flex-col items-end"><span className="text-xs text-slate-500 uppercase tracking-wider">Total Material</span><span className="text-lg">{totals.totalMaterialFt.toFixed(1)} Run.Ft</span></div>
+              </div>
+              
+              <h3 className="font-black text-slate-800 mb-3 text-xl px-2">Structures & Designs Breakdown</h3>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {items.map((item, idx) => (
+                  <div key={idx} className="bg-white avoid-break border border-slate-200 rounded-xl p-3 flex gap-4 items-center h-48 overflow-hidden">
+                    <div className="w-1/3 flex justify-center items-center h-full p-1 bg-blueprint rounded-lg overflow-hidden border border-slate-800">
+                       <Visualizer {...item} id={`${item.id}-print`} type={item.category === 'DG' ? 'Sliding' : item.type} mini={true} />
+                    </div>
+                    <div className="w-2/3 text-sm flex flex-col justify-center">
+                       <h4 className="font-bold text-slate-900 text-base mb-1 leading-tight truncate">
+                         {item.category} {item.type}
+                         {(item.type === 'Door' || item.type === 'Openable') && <span className="text-teal-600 font-medium text-[11px] ml-1">({item.panelQty === '2' ? 'Double' : 'Single'})</span>}
+                         {(item.hasArch && item.ah > 0) && <span className="text-sky-600 text-[11px] font-bold ml-1">+Arch</span>}
+                       </h4>
+                       <p className="text-slate-600 mb-1 text-xs truncate">
+                         <span className="font-bold text-slate-800">{item.specificColor}</span>
+                       </p>
+                       <p className="text-slate-600 mb-1 text-xs truncate">
+                         <span className="text-slate-800 font-bold">{item.panelMaterial === 'Sheet' ? 'ACP/Sheet Panel' : `${item.glassColor} Glass`}</span>
+                       </p>
+                       {(item.dividerWQty > 0 || item.dividerHQty > 0) && (
+                         <p className="text-[9px] text-slate-600 font-bold mb-1 truncate">
+                           + Grille: {item.dividerWQty || 0}W × {item.dividerHQty || 0}H ({item.dividerType})
+                         </p>
+                       )}
+                       <div className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100 text-xs mt-2">
+                         <span className="font-bold text-slate-700">{item.w}' × {(parseFloat(item.h)+(item.ah||0)).toFixed(1)}'</span>
+                         <span className="font-black text-slate-900">{item.sqft.toFixed(1)} Sq.Ft</span>
+                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <h3 className="font-black text-slate-800 mb-3 text-xl px-2 mt-8 avoid-break">Overall Material Requirement & Costing</h3>
+              <div className="rounded-xl overflow-hidden border border-slate-200 mb-8 avoid-break">
+                <table className="w-full text-base">
+                  <thead className="bg-slate-100 print:bg-slate-100">
+                    <tr className="text-slate-800 border-b border-slate-200">
+                      <th className="p-4 text-left font-bold">Section Profile</th>
+                      <th className="p-4 text-center font-bold">Market Rate</th>
+                      <th className="p-4 text-center font-bold">Total Running Ft</th>
+                      <th className="p-4 text-right font-bold">Total Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {aggregatedMaterials.map((m, idx) => (
+                      <tr key={idx} className="bg-white even:bg-slate-50">
+                        <td className="p-4 font-bold text-slate-800">{m.section}</td>
+                        <td className="p-4 text-center text-slate-600 font-medium">Rs {m.rate.toFixed(1)}</td>
+                        <td className="p-4 text-center font-bold text-slate-800">{m.ft.toFixed(1)} ft</td>
+                        <td className="p-4 text-right font-black text-slate-900">Rs {m.amount.toFixed(0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-6 mt-8 avoid-break">
+                <div className="w-full sm:w-1/2 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm print:bg-slate-50">
+                  <table className="w-full text-base">
+                    <tbody className="divide-y divide-slate-200/60">
+                      <tr><td className="py-3 text-slate-600 font-medium">Material Subtotal</td><td className="py-3 text-right font-bold text-slate-900">Rs {totals.rawSubtotal.toFixed(0)}</td></tr>
+                      {billing.discountPct > 0 && <tr><td className="py-3 text-red-600 font-medium">Discount ({billing.discountPct}%)</td><td className="py-3 text-right text-red-600 font-bold">- Rs {totals.discountAmount.toFixed(0)}</td></tr>}
+                      {billing.discountPct > 0 && <tr><td className="py-3 text-slate-800 font-bold">After Discount</td><td className="py-3 text-right font-bold text-slate-900">Rs {totals.afterDiscount.toFixed(0)}</td></tr>}
+                      {totals.glassCost > 0 && <tr><td className="py-3 text-slate-600 font-medium">Total Glass/Sheet Cost</td><td className="py-3 text-right font-bold text-slate-800">Rs {totals.glassCost.toFixed(0)}</td></tr>}
+                      {totals.hwCost > 0 && <tr><td className="py-3 text-slate-600 font-medium">Total Hardware Cost</td><td className="py-3 text-right font-bold text-slate-800">Rs {totals.hwCost.toFixed(0)}</td></tr>}
+                      {totals.laborCost > 0 && <tr><td className="py-3 text-slate-600 font-medium">Total Labor Cost</td><td className="py-3 text-right font-bold text-slate-800">Rs {totals.laborCost.toFixed(0)}</td></tr>}
+                      {billing.additional > 0 && <tr><td className="py-3 text-slate-600 font-medium">Additional Charges</td><td className="py-3 text-right font-bold text-slate-800">Rs {parseFloat(billing.additional).toFixed(0)}</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="w-full sm:w-1/2 bg-slate-900 rounded-[1.25rem] p-6 text-slate-300 shadow-xl print:bg-[#0f172a] print:text-slate-300 !print:color-adjust-exact" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm font-medium border-b border-slate-700 pb-4 mb-4">
+                    <div className="flex justify-between pr-3 border-r border-slate-700"><span>Fixed Qty:</span> <span className="text-white font-bold">{totals.fixedQty}</span></div><div className="flex justify-between pl-1"><span>Fixed SqFt:</span> <span className="text-white font-bold">{totals.fixedSqft.toFixed(1)}</span></div>
+                    <div className="flex justify-between pr-3 border-r border-slate-700"><span>Sliding Qty:</span> <span className="text-white font-bold">{totals.slidingQty}</span></div><div className="flex justify-between pl-1"><span>Sliding SqFt:</span> <span className="text-white font-bold">{totals.slidingSqft.toFixed(1)}</span></div>
+                    <div className="flex justify-between pr-3 border-r border-slate-700"><span>Door Qty:</span> <span className="text-white font-bold">{totals.doorQty}</span></div><div className="flex justify-between pl-1"><span>Door SqFt:</span> <span className="text-white font-bold">{totals.doorSqft.toFixed(1)}</span></div>
+                    <div className="flex justify-between pr-3 border-r border-slate-700"><span>Openable Qty:</span> <span className="text-white font-bold">{totals.openableQty}</span></div><div className="flex justify-between pl-1"><span>Openable SqFt:</span> <span className="text-white font-bold">{totals.openableSqft.toFixed(1)}</span></div>
+                  </div>
+                  <div className="flex justify-between items-center mb-2 text-[15px] font-medium"><span className="text-slate-300">Total Area:</span> <span className="text-white font-bold">{totals.totalSqft.toFixed(1)} Sq.Ft</span></div>
+                  <div className="flex justify-between items-center mb-6 text-[15px] font-medium"><span className="text-slate-300">Avg. Rate/Sq.Ft:</span> <span className="text-white font-bold">Rs {totals.sqftRate.toFixed(0)}</span></div>
+                  <div className="flex justify-between items-center pt-5 border-t border-slate-700"><span className="text-xl font-bold text-white tracking-wide">Grand Total</span><span className="text-[2rem] font-black text-white">Rs {totals.grandTotal.toFixed(0)}</span></div>
+                </div>
+              </div>
+
+              <div className="mt-20 pt-6 text-center text-sm font-bold text-slate-400 border-t border-slate-200">Generated via Aluminium Pro Max (Architect Edition) <br/><span className="font-normal text-xs mt-1 block">Thank you for your business!</span></div>
+            </div>
+
+          </div>
+
+          <div className="fixed bottom-4 left-4 right-4 bg-white/90 backdrop-blur-xl border border-slate-200/50 flex justify-between px-2 sm:px-6 py-2 pb-safe no-print sm:max-w-md sm:mx-auto rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] z-50">
+            <button onClick={() => setActiveTab('dc')} className={`flex flex-col items-center p-2.5 rounded-2xl transition-all w-14 ${activeTab === 'dc' ? 'text-slate-900 bg-slate-100' : 'text-slate-400 hover:text-slate-600'}`}><IconCalc /><span className="text-[10px] font-bold mt-1.5 whitespace-nowrap">DC Calc</span></button>
+            <button onClick={() => setActiveTab('dg')} className={`flex flex-col items-center p-2.5 rounded-2xl transition-all w-14 ${activeTab === 'dg' ? 'text-slate-900 bg-slate-100' : 'text-slate-400 hover:text-slate-600'}`}><IconDG /><span className="text-[10px] font-bold mt-1.5 whitespace-nowrap">DG Calc</span></button>
+            <button onClick={() => setActiveTab('rateManager')} className={`flex flex-col items-center p-2.5 rounded-2xl transition-all w-14 ${activeTab === 'rateManager' ? 'text-slate-900 bg-slate-100' : 'text-slate-400 hover:text-slate-600'}`}><IconEdit /><span className="text-[10px] font-bold mt-1.5 whitespace-nowrap">Rates</span></button>
+            <button onClick={() => window.print()} className="flex flex-col items-center p-2.5 rounded-2xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all w-14"><IconPDF /><span className="text-[10px] font-bold mt-1.5 whitespace-nowrap">PDF</span></button>
+            <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center p-2.5 rounded-2xl transition-all w-14 ${activeTab === 'settings' ? 'text-slate-900 bg-slate-100' : 'text-slate-400 hover:text-slate-600'}`}><IconUser /><span className="text-[10px] font-bold mt-1.5 whitespace-nowrap">Profile</span></button>
+          </div>
+        </div>
+      );
+    }
+
+    const AppWithErrorBoundary = () => (
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    );
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AppWithErrorBoundary />);
+  </script>
+</body>
+</html>
+
+```
